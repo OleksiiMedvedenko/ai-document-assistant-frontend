@@ -4,8 +4,10 @@ import {
   getChatSessions,
 } from "@/app/api/chats.api";
 import { getDocument } from "@/app/api/documents.api";
+import { getDocumentDisplayName } from "@/app/lib/document";
 import { Bot, Loader2, SendHorizonal, Sparkles, User2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
 type SessionItem = {
@@ -22,6 +24,7 @@ type MessageItem = {
   message?: unknown;
   text?: unknown;
   answer?: unknown;
+  createdAt?: string;
 };
 
 type DocumentDto = {
@@ -31,41 +34,21 @@ type DocumentDto = {
   name?: string;
 };
 
-function getDocumentDisplayName(documentItem: DocumentDto | null) {
-  if (!documentItem) return "Document chat";
-
-  return (
-    documentItem.originalFileName ||
-    documentItem.fileName ||
-    documentItem.name ||
-    "Untitled document"
-  );
-}
-
 function normalizeRole(role: unknown): "user" | "assistant" {
   if (typeof role === "string") {
-    const normalized = role.toLowerCase();
-
-    if (normalized === "user" || normalized === "human") {
-      return "user";
-    }
-
-    return "assistant";
+    const value = role.toLowerCase();
+    return value === "user" || value === "human" ? "user" : "assistant";
   }
 
   if (typeof role === "number") {
     return role === 0 ? "user" : "assistant";
   }
 
-  if (role && typeof role === "object") {
-    const maybeValue =
-      "value" in role ? (role as { value?: unknown }).value : undefined;
-
-    if (typeof maybeValue === "string") {
-      const normalized = maybeValue.toLowerCase();
-      return normalized === "user" || normalized === "human"
-        ? "user"
-        : "assistant";
+  if (role && typeof role === "object" && "value" in role) {
+    const nested = (role as { value?: unknown }).value;
+    if (typeof nested === "string") {
+      const value = nested.toLowerCase();
+      return value === "user" || value === "human" ? "user" : "assistant";
     }
   }
 
@@ -92,49 +75,27 @@ function normalizeMessageContent(item: MessageItem): string {
   return "";
 }
 
-function normalizeMessages(payload: unknown): MessageItem[] {
-  if (Array.isArray(payload)) {
-    return payload as MessageItem[];
-  }
+function normalizeSessions(payload: unknown): SessionItem[] {
+  if (Array.isArray(payload)) return payload as SessionItem[];
 
   if (payload && typeof payload === "object") {
     const record = payload as Record<string, unknown>;
-
-    if (Array.isArray(record.items)) {
-      return record.items as MessageItem[];
-    }
-
-    if (Array.isArray(record.messages)) {
-      return record.messages as MessageItem[];
-    }
-
-    if (Array.isArray(record.data)) {
-      return record.data as MessageItem[];
-    }
+    if (Array.isArray(record.items)) return record.items as SessionItem[];
+    if (Array.isArray(record.sessions)) return record.sessions as SessionItem[];
+    if (Array.isArray(record.data)) return record.data as SessionItem[];
   }
 
   return [];
 }
 
-function normalizeSessions(payload: unknown): SessionItem[] {
-  if (Array.isArray(payload)) {
-    return payload as SessionItem[];
-  }
+function normalizeMessages(payload: unknown): MessageItem[] {
+  if (Array.isArray(payload)) return payload as MessageItem[];
 
   if (payload && typeof payload === "object") {
     const record = payload as Record<string, unknown>;
-
-    if (Array.isArray(record.items)) {
-      return record.items as SessionItem[];
-    }
-
-    if (Array.isArray(record.sessions)) {
-      return record.sessions as SessionItem[];
-    }
-
-    if (Array.isArray(record.data)) {
-      return record.data as SessionItem[];
-    }
+    if (Array.isArray(record.items)) return record.items as MessageItem[];
+    if (Array.isArray(record.messages)) return record.messages as MessageItem[];
+    if (Array.isArray(record.data)) return record.data as MessageItem[];
   }
 
   return [];
@@ -142,6 +103,7 @@ function normalizeSessions(payload: unknown): SessionItem[] {
 
 export function DocumentChatPage() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
 
   const [documentItem, setDocumentItem] = useState<DocumentDto | null>(null);
   const [sessions, setSessions] = useState<SessionItem[]>([]);
@@ -151,7 +113,13 @@ export function DocumentChatPage() {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const endRef = useRef<HTMLDivElement | null>(null);
+
   const canSend = useMemo(() => prompt.trim().length > 0 && !!id, [prompt, id]);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, sending]);
 
   useEffect(() => {
     if (!id) return;
@@ -244,28 +212,26 @@ export function DocumentChatPage() {
 
   return (
     <div className="grid min-h-[720px] gap-6 xl:grid-cols-[320px_1fr]">
-      <aside className="rounded-[28px] surface-soft p-5">
+      <aside className="surface-elevated rounded-[28px] p-5">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full surface-soft px-3 py-1 text-xs text-soft">
           <Sparkles size={14} />
-          Chat sessions
+          {t("chat.sessions")}
         </div>
 
-        <h1 className="text-2xl font-semibold">
+        <h1 className="break-words text-2xl font-semibold">
           {getDocumentDisplayName(documentItem)}
         </h1>
-        <p className="mt-2 text-sm text-soft">
-          Ask questions about the uploaded content and restore previous
-          sessions.
-        </p>
+
+        <p className="mt-2 text-sm text-soft">{t("chat.subtitle")}</p>
 
         <div className="mt-6 space-y-3">
           {loading ? (
             <div className="rounded-2xl bg-[var(--panel-soft)] p-4 text-soft">
-              Loading...
+              {t("common.loading")}
             </div>
           ) : sessions.length === 0 ? (
             <div className="rounded-2xl bg-[var(--panel-soft)] p-4 text-soft">
-              No saved sessions yet. Send your first question.
+              {t("chat.noSessions")}
             </div>
           ) : (
             sessions.map((session, index) => (
@@ -278,14 +244,16 @@ export function DocumentChatPage() {
                 className={[
                   "w-full rounded-2xl border px-4 py-3 text-left transition",
                   activeSessionId === session.id
-                    ? "border-transparent bg-[var(--primary)] text-[var(--primary-contrast)]"
+                    ? "primary-button border-transparent"
                     : "border-[var(--border)] bg-[var(--panel-soft)] hover:bg-[var(--panel-strong)]",
                 ].join(" ")}
               >
                 <p className="font-medium">
-                  {session.title ?? session.name ?? `Session ${index + 1}`}
+                  {session.title ??
+                    session.name ??
+                    `${t("chat.session")} ${index + 1}`}
                 </p>
-                <p className="mt-1 text-xs opacity-80 break-all">
+                <p className="mt-1 break-all text-xs opacity-80">
                   {session.id}
                 </p>
               </button>
@@ -294,45 +262,42 @@ export function DocumentChatPage() {
         </div>
       </aside>
 
-      <section className="rounded-[28px] surface-soft p-5 lg:p-6">
+      <section className="surface-elevated rounded-[28px] p-5 lg:p-6">
         <div className="flex h-full flex-col">
-          <div className="mb-4 flex items-center justify-between gap-4 border-b border-[var(--border)] pb-4">
-            <div>
-              <h2 className="text-xl font-semibold">AI conversation</h2>
-              <p className="mt-1 text-sm text-soft">
-                Context-aware chat for this document.
-              </p>
-            </div>
+          <div className="mb-4 border-b border-[var(--border)] pb-4">
+            <h2 className="text-xl font-semibold">{t("chat.title")}</h2>
+            <p className="mt-1 text-sm text-soft">{t("chat.contextAware")}</p>
           </div>
 
           <div className="flex-1 space-y-4 overflow-auto pr-1">
             {messages.length === 0 ? (
               <div className="flex min-h-[420px] items-center justify-center rounded-2xl bg-[var(--panel-soft)] text-soft">
-                Start by asking a question about the document.
+                {t("chat.empty")}
               </div>
             ) : (
               messages.map((item, index) => {
-                const normalizedRole = normalizeRole(item.role);
-                const isUser = normalizedRole === "user";
+                const role = normalizeRole(item.role);
+                const isUser = role === "user";
                 const content = normalizeMessageContent(item);
 
                 return (
                   <div
-                    key={item.id ?? `${normalizedRole}-${index}`}
+                    key={item.id ?? `${role}-${index}`}
                     className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                   >
                     <div
                       className={[
-                        "max-w-[80%] rounded-3xl px-4 py-4",
+                        "max-w-[82%] rounded-3xl px-4 py-4",
                         isUser
-                          ? "bg-[var(--primary)] text-[var(--primary-contrast)]"
+                          ? "primary-button"
                           : "bg-[var(--panel-soft)] text-[var(--text)]",
                       ].join(" ")}
                     >
                       <div className="mb-2 flex items-center gap-2 text-xs opacity-80">
                         {isUser ? <User2 size={14} /> : <Bot size={14} />}
-                        {isUser ? "You" : "Assistant"}
+                        {isUser ? t("chat.you") : t("chat.assistant")}
                       </div>
+
                       <div className="whitespace-pre-wrap break-words leading-7">
                         {content}
                       </div>
@@ -347,11 +312,13 @@ export function DocumentChatPage() {
                 <div className="rounded-3xl bg-[var(--panel-soft)] px-4 py-4 text-soft">
                   <div className="flex items-center gap-2">
                     <Loader2 size={16} className="animate-spin" />
-                    Thinking...
+                    {t("chat.thinking")}
                   </div>
                 </div>
               </div>
             ) : null}
+
+            <div ref={endRef} />
           </div>
 
           <div className="mt-4 border-t border-[var(--border)] pt-4">
@@ -361,16 +328,17 @@ export function DocumentChatPage() {
                 onChange={(e) => setPrompt(e.target.value)}
                 rows={3}
                 className="flex-1 rounded-2xl border border-[var(--border)] bg-[var(--panel-soft)] px-4 py-3 outline-none"
-                placeholder="Ask about the document, request a summary, find facts, risks or differences..."
+                placeholder={t("chat.placeholder")}
               />
+
               <button
                 type="button"
                 onClick={() => void handleSend()}
                 disabled={!canSend || sending}
-                className="inline-flex items-center gap-2 self-end rounded-2xl bg-[var(--primary)] px-5 py-3 font-medium text-[var(--primary-contrast)] transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+                className="primary-button inline-flex items-center gap-2 self-end rounded-2xl px-5 py-3 font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <SendHorizonal size={18} />
-                Send
+                {t("chat.send")}
               </button>
             </div>
           </div>

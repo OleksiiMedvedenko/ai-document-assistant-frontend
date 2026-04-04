@@ -10,9 +10,9 @@ export function LanguageSwitcher() {
   const { i18n } = useTranslation();
 
   return (
-    <div className="glass inline-flex rounded-2xl p-1 soft-shadow">
+    <div className="inline-flex rounded-2xl surface-soft p-1">
       {languages.map((language) => {
-        const active = i18n.language === language.code;
+        const active = i18n.resolvedLanguage === language.code;
 
         return (
           <button
@@ -22,8 +22,8 @@ export function LanguageSwitcher() {
             className={[
               "rounded-xl px-3 py-2 text-xs font-semibold tracking-wide transition",
               active
-                ? "bg-white text-zinc-950"
-                : "text-zinc-300 hover:bg-white/10 hover:text-white",
+                ? "primary-button"
+                : "text-soft hover:bg-[var(--panel-strong)]",
             ].join(" ")}
           >
             {language.label}

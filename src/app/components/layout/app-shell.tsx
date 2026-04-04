@@ -1,3 +1,5 @@
+import { LanguageSwitcher } from "@/app/components/layout/language-switcher";
+import { ThemeToggle } from "@/app/components/layout/theme-toggle";
 import { useAuthStore } from "@/app/store/auth.store";
 import {
   FileText,
@@ -8,8 +10,6 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { LanguageSwitcher } from "./language-switcher";
-import { ThemeToggle } from "./theme-toggle";
 
 export function AppShell() {
   const location = useLocation();
@@ -41,8 +41,8 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen px-4 py-4 lg:px-6 lg:py-6">
-      <div className="page-container grid min-h-[calc(100vh-2rem)] grid-cols-1 gap-6 xl:grid-cols-[300px_1fr]">
-        <aside className="app-shell-card rounded-[32px] p-6">
+      <div className="page-container grid min-h-[calc(100vh-2rem)] grid-cols-1 gap-6 xl:grid-cols-[280px_1fr]">
+        <aside className="app-shell-card flex flex-col rounded-[32px] p-5 lg:p-6">
           <div className="mb-8">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full surface-soft px-3 py-1.5 text-xs text-soft">
               <Sparkles size={14} />
@@ -69,8 +69,8 @@ export function AppShell() {
                   className={[
                     "flex items-center gap-3 rounded-2xl px-4 py-3 transition",
                     item.active
-                      ? "bg-[var(--primary)] text-[var(--primary-contrast)]"
-                      : "surface-soft text-[var(--text)] hover:bg-[var(--panel-strong)]",
+                      ? "primary-button"
+                      : "surface-soft hover:bg-[var(--panel-strong)]",
                   ].join(" ")}
                 >
                   <Icon size={18} />
@@ -97,14 +97,14 @@ export function AppShell() {
           </div>
         </aside>
 
-        <div className="app-shell-card rounded-[32px] overflow-hidden">
+        <div className="app-shell-card overflow-hidden rounded-[32px]">
           <header className="flex items-center justify-between border-b border-[var(--border)] px-6 py-5 lg:px-8">
             <div>
               <p className="text-sm text-muted">{t("common.workspace")}</p>
               <h2 className="text-xl font-semibold">{t("common.dashboard")}</h2>
             </div>
 
-            <div className="hidden md:flex items-center gap-2 rounded-full surface-soft px-3 py-2 text-sm text-soft">
+            <div className="hidden items-center gap-2 rounded-full surface-soft px-3 py-2 text-sm text-soft md:flex">
               <Sparkles size={14} />
               {t("common.aiPowered")}
             </div>

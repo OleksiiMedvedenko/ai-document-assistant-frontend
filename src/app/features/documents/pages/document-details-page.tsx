@@ -1,10 +1,19 @@
 import {
+  deleteDocument,
   extractDocument,
   getDocument,
   getDocumentStatus,
   getExtractions,
   summarizeDocument,
 } from "@/app/api/documents.api";
+import { DeleteConfirmModal } from "@/app/components/feedback/delete-confirm-modal";
+import {
+  getDocumentDisplayName,
+  getDocumentMimeValue,
+  getDocumentSizeLabel,
+  getDocumentStatusLabel,
+  getDocumentTypeLabel,
+} from "@/app/lib/document";
 import {
   ArrowRight,
   Bot,
@@ -12,10 +21,12 @@ import {
   GitCompareArrows,
   Loader2,
   Sparkles,
+  Trash2,
   WandSparkles,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 type DocumentDto = {
   id: string;
@@ -37,59 +48,28 @@ type ExtractionItem = {
   resultJson?: string;
 };
 
-function formatBytes(bytes?: number) {
-  if (!bytes) return "—";
-  const units = ["B", "KB", "MB", "GB"];
-  let value = bytes;
-  let unit = 0;
+function statusClass(status: number | string | undefined) {
+  const value = getDocumentStatusLabel(status);
 
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit += 1;
-  }
-
-  return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[unit]}`;
-}
-
-function statusLabel(status: number | string | undefined) {
-  if (status === 0 || status === "Pending") return "Pending";
-  if (status === 1 || status === "Processing") return "Processing";
-  if (status === 2 || status === "Completed") return "Completed";
-  if (status === 3 || status === "Ready") return "Ready";
-  return "Unknown";
-}
-
-function getDocumentDisplayName(documentItem: DocumentDto | null) {
-  if (!documentItem) return "Untitled document";
-
-  return (
-    documentItem.originalFileName ||
-    documentItem.fileName ||
-    documentItem.name ||
-    "Untitled document"
-  );
-}
-
-function getDocumentType(documentItem: DocumentDto | null) {
-  if (!documentItem) return "Document";
-
-  return documentItem.contentType || documentItem.mimeType || "Document";
-}
-
-function getDocumentSize(documentItem: DocumentDto | null) {
-  if (!documentItem) return "—";
-
-  return formatBytes(documentItem.sizeInBytes ?? documentItem.fileSizeInBytes);
+  if (value === "Pending") return "status-pending";
+  if (value === "Processing") return "status-processing";
+  if (value === "Completed") return "status-completed";
+  if (value === "Ready") return "status-ready";
+  return "status-unknown";
 }
 
 export function DocumentDetailsPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [documentItem, setDocumentItem] = useState<DocumentDto | null>(null);
   const [status, setStatus] = useState<number | string | undefined>(undefined);
   const [summary, setSummary] = useState("");
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [extractLoading, setExtractLoading] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [extractions, setExtractions] = useState<ExtractionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [extractFields, setExtractFields] = useState("name,email,skills");
@@ -154,6 +134,19 @@ export function DocumentDetailsPage() {
     }
   }
 
+  async function handleDelete() {
+    if (!id) return;
+
+    setDeleteBusy(true);
+
+    try {
+      await deleteDocument(id);
+      navigate("/documents");
+    } finally {
+      setDeleteBusy(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-[420px] items-center justify-center rounded-[28px] surface-soft">
@@ -164,52 +157,65 @@ export function DocumentDetailsPage() {
 
   if (!documentItem) {
     return (
-      <div className="rounded-[28px] surface-soft p-8">Document not found.</div>
+      <div className="rounded-[28px] surface-soft p-8">
+        {t("details.notFound")}
+      </div>
     );
   }
+
+  const statusLabel = getDocumentStatusLabel(status);
 
   return (
     <div className="space-y-6">
       <section className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-        <div className="rounded-[28px] surface-soft p-6 lg:p-8">
+        <div className="surface-elevated rounded-[28px] p-6 lg:p-8">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full surface-soft px-3 py-1 text-xs text-soft">
             <Sparkles size={14} />
-            Document overview
+            {t("details.overview")}
           </div>
 
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
+            <div className="flex-1">
               <h1 className="break-words text-3xl font-semibold tracking-tight lg:text-4xl">
                 {getDocumentDisplayName(documentItem)}
               </h1>
+
               <p className="mt-3 max-w-2xl text-soft">
-                View status, generate summary, extract structured data and jump
-                into AI chat.
+                {t("details.subtitle")}
               </p>
             </div>
 
-            <div className="status-ready shrink-0 rounded-full px-3 py-1 text-sm font-medium">
-              {statusLabel(status)}
+            <div
+              className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium ${statusClass(status)}`}
+            >
+              {t(`documents.status.${statusLabel.toLowerCase()}`, statusLabel)}
             </div>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl surface-soft p-4 min-w-0">
-              <p className="text-sm text-muted">File type</p>
+          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="min-w-0 rounded-2xl surface-soft p-4">
+              <p className="text-sm text-muted">{t("details.fileType")}</p>
+              <p className="mt-2 break-words text-sm font-medium">
+                {getDocumentTypeLabel(documentItem)}
+              </p>
+            </div>
+
+            <div className="min-w-0 rounded-2xl surface-soft p-4">
+              <p className="text-sm text-muted">{t("details.mimeType")}</p>
               <p className="mt-2 break-all text-sm font-medium">
-                {getDocumentType(documentItem)}
+                {getDocumentMimeValue(documentItem)}
               </p>
             </div>
 
-            <div className="rounded-2xl surface-soft p-4 min-w-0">
-              <p className="text-sm text-muted">Size</p>
-              <p className="mt-2 font-medium">
-                {getDocumentSize(documentItem)}
+            <div className="min-w-0 rounded-2xl surface-soft p-4">
+              <p className="text-sm text-muted">{t("details.size")}</p>
+              <p className="mt-2 text-sm font-medium">
+                {getDocumentSizeLabel(documentItem)}
               </p>
             </div>
 
-            <div className="rounded-2xl surface-soft p-4 min-w-0">
-              <p className="text-sm text-muted">Document ID</p>
+            <div className="min-w-0 rounded-2xl surface-soft p-4">
+              <p className="text-sm text-muted">{t("details.documentId")}</p>
               <p className="mt-2 break-all text-sm font-medium">
                 {documentItem.id}
               </p>
@@ -220,10 +226,12 @@ export function DocumentDetailsPage() {
             <button
               type="button"
               onClick={() => void handleSummarize()}
-              className="inline-flex items-center gap-2 rounded-2xl bg-[var(--primary)] px-4 py-3 font-medium text-[var(--primary-contrast)] transition hover:opacity-95"
+              className="primary-button inline-flex items-center gap-2 rounded-2xl px-4 py-3 font-medium transition"
             >
               <WandSparkles size={18} />
-              {summaryLoading ? "Generating..." : "Generate summary"}
+              {summaryLoading
+                ? t("details.generating")
+                : t("details.generateSummary")}
             </button>
 
             <Link
@@ -231,7 +239,7 @@ export function DocumentDetailsPage() {
               className="inline-flex items-center gap-2 rounded-2xl surface-soft px-4 py-3 font-medium transition hover:bg-[var(--panel-strong)]"
             >
               <Bot size={18} />
-              Open AI chat
+              {t("details.openChat")}
             </Link>
 
             <Link
@@ -239,21 +247,30 @@ export function DocumentDetailsPage() {
               className="inline-flex items-center gap-2 rounded-2xl surface-soft px-4 py-3 font-medium transition hover:bg-[var(--panel-strong)]"
             >
               <GitCompareArrows size={18} />
-              Compare documents
+              {t("details.compare")}
             </Link>
+
+            <button
+              type="button"
+              onClick={() => setDeleteOpen(true)}
+              className="danger-button inline-flex items-center gap-2 rounded-2xl px-4 py-3 font-medium transition"
+            >
+              <Trash2 size={18} />
+              {t("documents.delete")}
+            </button>
           </div>
         </div>
 
-        <div className="rounded-[28px] surface-soft p-6 lg:p-8">
-          <h2 className="text-xl font-semibold">Structured extraction</h2>
+        <div className="surface-elevated rounded-[28px] p-6 lg:p-8">
+          <h2 className="text-xl font-semibold">{t("details.extraction")}</h2>
           <p className="mt-2 text-sm text-soft">
-            Extract reusable fields from the document.
+            {t("details.extractionSubtitle")}
           </p>
 
           <div className="mt-6 space-y-4">
             <div>
               <label className="mb-2 block text-sm text-muted">
-                Extraction type
+                {t("details.extractionType")}
               </label>
               <input
                 value={extractType}
@@ -265,7 +282,7 @@ export function DocumentDetailsPage() {
 
             <div>
               <label className="mb-2 block text-sm text-muted">
-                Fields (comma separated)
+                {t("details.fields")}
               </label>
               <textarea
                 value={extractFields}
@@ -281,40 +298,44 @@ export function DocumentDetailsPage() {
               onClick={() => void handleExtract()}
               className="w-full rounded-2xl surface-soft px-4 py-3 font-medium transition hover:bg-[var(--panel-strong)]"
             >
-              {extractLoading ? "Extracting..." : "Run extraction"}
+              {extractLoading
+                ? t("details.extracting")
+                : t("details.runExtraction")}
             </button>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
-        <div className="rounded-[28px] surface-soft p-6 lg:p-8">
+      <section className="grid gap-6 xl:grid-cols-[1fr_0.95fr]">
+        <div className="surface-elevated rounded-[28px] p-6 lg:p-8">
           <div className="mb-4 flex items-center gap-2">
             <FileText size={18} />
-            <h2 className="text-xl font-semibold">Summary</h2>
+            <h2 className="text-xl font-semibold">{t("details.summary")}</h2>
           </div>
 
           {summary ? (
-            <div className="rounded-2xl bg-[var(--panel-soft)] p-5 whitespace-pre-wrap text-soft break-words">
+            <div className="rounded-2xl bg-[var(--panel-soft)] p-5 whitespace-pre-wrap break-words text-soft">
               {summary}
             </div>
           ) : (
             <div className="rounded-2xl bg-[var(--panel-soft)] p-5 text-soft">
-              No summary yet. Generate one from the action above.
+              {t("details.noSummary")}
             </div>
           )}
         </div>
 
-        <div className="rounded-[28px] surface-soft p-6 lg:p-8">
+        <div className="surface-elevated rounded-[28px] p-6 lg:p-8">
           <div className="mb-4 flex items-center gap-2">
             <ArrowRight size={18} />
-            <h2 className="text-xl font-semibold">Extraction history</h2>
+            <h2 className="text-xl font-semibold">
+              {t("details.extractionHistory")}
+            </h2>
           </div>
 
           <div className="space-y-3">
             {extractions.length === 0 ? (
               <div className="rounded-2xl bg-[var(--panel-soft)] p-5 text-soft">
-                No extractions yet.
+                {t("details.noExtractions")}
               </div>
             ) : (
               extractions.map((item) => (
@@ -324,7 +345,7 @@ export function DocumentDetailsPage() {
                 >
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-medium">
-                      {item.extractionType ?? "Extraction"}
+                      {item.extractionType ?? t("details.extractionItem")}
                     </p>
                     <span className="break-all text-xs text-muted">
                       {item.id}
@@ -332,7 +353,7 @@ export function DocumentDetailsPage() {
                   </div>
 
                   {item.resultJson ? (
-                    <pre className="mt-3 overflow-auto rounded-xl bg-black/20 p-3 text-xs text-soft whitespace-pre-wrap break-words">
+                    <pre className="mt-3 overflow-auto rounded-xl bg-black/20 p-3 text-xs whitespace-pre-wrap break-words text-soft">
                       {item.resultJson}
                     </pre>
                   ) : null}
@@ -342,6 +363,17 @@ export function DocumentDetailsPage() {
           </div>
         </div>
       </section>
+
+      <DeleteConfirmModal
+        open={deleteOpen}
+        title={t("deleteModal.title")}
+        description={t("deleteModal.description")}
+        confirmLabel={t("deleteModal.delete")}
+        cancelLabel={t("deleteModal.cancel")}
+        busy={deleteBusy}
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setDeleteOpen(false)}
+      />
     </div>
   );
 }

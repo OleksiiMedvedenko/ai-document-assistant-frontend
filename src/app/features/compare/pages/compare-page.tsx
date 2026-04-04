@@ -1,23 +1,29 @@
 import { compareDocuments, getDocuments } from "@/app/api/documents.api";
+import { getDocumentDisplayName } from "@/app/lib/document";
 import { GitCompareArrows, Loader2, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type DocumentItem = {
   id: string;
   fileName?: string;
+  originalFileName?: string;
   name?: string;
 };
 
 export function ComparePage() {
+  const { t, i18n } = useTranslation();
+
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [firstDocumentId, setFirstDocumentId] = useState("");
   const [secondDocumentId, setSecondDocumentId] = useState("");
-  const [prompt, setPrompt] = useState(
-    "Compare these documents and highlight the key differences, similarities and risks.",
-  );
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(true);
   const [comparing, setComparing] = useState(false);
+
+  const defaultPrompt = t("compare.defaultPrompt");
+  const previousDefaultPromptRef = useRef(defaultPrompt);
+  const [prompt, setPrompt] = useState(defaultPrompt);
 
   useEffect(() => {
     async function load() {
@@ -35,6 +41,16 @@ export function ComparePage() {
 
     void load();
   }, []);
+
+  useEffect(() => {
+    const previousDefault = previousDefaultPromptRef.current;
+
+    if (!prompt || prompt === previousDefault) {
+      setPrompt(defaultPrompt);
+    }
+
+    previousDefaultPromptRef.current = defaultPrompt;
+  }, [defaultPrompt, i18n.resolvedLanguage, prompt]);
 
   const compareDisabled = useMemo(() => {
     return (
@@ -70,24 +86,22 @@ export function ComparePage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[28px] surface-soft p-6 lg:p-8">
+      <section className="surface-elevated rounded-[28px] p-6 lg:p-8">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full surface-soft px-3 py-1 text-xs text-soft">
           <Sparkles size={14} />
-          AI comparison workspace
+          {t("compare.badge")}
         </div>
 
         <h1 className="text-3xl font-semibold tracking-tight lg:text-4xl">
-          Compare two documents with AI
+          {t("compare.title")}
         </h1>
-        <p className="mt-3 max-w-2xl text-soft">
-          Select a base document, choose a second file and generate a structured
-          comparison.
-        </p>
+
+        <p className="mt-3 max-w-2xl text-soft">{t("compare.subtitle")}</p>
 
         <div className="mt-8 grid gap-4 lg:grid-cols-2">
           <div>
             <label className="mb-2 block text-sm text-muted">
-              First document
+              {t("compare.first")}
             </label>
             <select
               value={firstDocumentId}
@@ -96,7 +110,7 @@ export function ComparePage() {
             >
               {documents.map((doc) => (
                 <option key={doc.id} value={doc.id}>
-                  {doc.fileName ?? doc.name ?? doc.id}
+                  {getDocumentDisplayName(doc)}
                 </option>
               ))}
             </select>
@@ -104,7 +118,7 @@ export function ComparePage() {
 
           <div>
             <label className="mb-2 block text-sm text-muted">
-              Second document
+              {t("compare.second")}
             </label>
             <select
               value={secondDocumentId}
@@ -113,7 +127,7 @@ export function ComparePage() {
             >
               {documents.map((doc) => (
                 <option key={doc.id} value={doc.id}>
-                  {doc.fileName ?? doc.name ?? doc.id}
+                  {getDocumentDisplayName(doc)}
                 </option>
               ))}
             </select>
@@ -122,7 +136,7 @@ export function ComparePage() {
 
         <div className="mt-4">
           <label className="mb-2 block text-sm text-muted">
-            Comparison prompt
+            {t("compare.prompt")}
           </label>
           <textarea
             value={prompt}
@@ -136,31 +150,31 @@ export function ComparePage() {
           type="button"
           onClick={() => void handleCompare()}
           disabled={compareDisabled}
-          className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-[var(--primary)] px-5 py-3 font-medium text-[var(--primary-contrast)] transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+          className="primary-button mt-6 inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
         >
           {comparing ? (
             <Loader2 size={18} className="animate-spin" />
           ) : (
             <GitCompareArrows size={18} />
           )}
-          {comparing ? "Comparing..." : "Run compare"}
+          {comparing ? t("compare.running") : t("compare.run")}
         </button>
       </section>
 
-      <section className="rounded-[28px] surface-soft p-6 lg:p-8">
-        <h2 className="text-xl font-semibold">Comparison result</h2>
+      <section className="surface-elevated rounded-[28px] p-6 lg:p-8">
+        <h2 className="text-xl font-semibold">{t("compare.result")}</h2>
 
         {loading ? (
           <div className="mt-4 rounded-2xl bg-[var(--panel-soft)] p-6 text-soft">
-            Loading documents...
+            {t("common.loading")}
           </div>
         ) : result ? (
-          <div className="mt-4 rounded-2xl bg-[var(--panel-soft)] p-6 text-soft whitespace-pre-wrap">
+          <div className="mt-4 rounded-2xl bg-[var(--panel-soft)] p-6 whitespace-pre-wrap break-words text-soft">
             {result}
           </div>
         ) : (
           <div className="mt-4 rounded-2xl bg-[var(--panel-soft)] p-6 text-soft">
-            Choose two documents and run the comparison.
+            {t("compare.empty")}
           </div>
         )}
       </section>
