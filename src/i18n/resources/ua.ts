@@ -13,6 +13,9 @@ export const ua = {
   common: {
     logout: "Вийти",
     loading: "Завантаження...",
+    workspace: "Робочий простір",
+    dashboard: "Панель",
+    aiPowered: "AI-потік роботи з документами",
   },
   documents: {
     heroBadge: "Розумна робота з документами",
@@ -22,7 +25,7 @@ export const ua = {
     uploadTitle: "Перетягніть файл або натисніть для завантаження",
     uploadSubtitle: "PDF, DOCX та інші підтримувані формати документів",
     uploading: "Завантаження...",
-    quickStats: "Огляд workspace",
+    quickStats: "Огляд простору",
     totalDocuments: "Усього документів",
     aiReady: "Файли готові для AI",
     libraryTitle: "Бібліотека документів",

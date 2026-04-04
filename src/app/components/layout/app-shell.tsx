@@ -9,50 +9,53 @@ import {
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { LanguageSwitcher } from "./language-switcher";
+import { ThemeToggle } from "./theme-toggle";
 
 export function AppShell() {
   const location = useLocation();
-  const logout = useAuthStore((state) => state.logout);
   const { t } = useTranslation();
+  const logout = useAuthStore((state) => state.logout);
 
   const navItems = [
     {
       to: "/documents",
-      icon: FileText,
       label: t("nav.documents"),
-      active: location.pathname.startsWith("/documents"),
+      icon: FileText,
+      active:
+        location.pathname.startsWith("/documents") &&
+        !location.pathname.includes("/chat"),
     },
     {
       to: "/compare",
-      icon: GitCompareArrows,
       label: t("nav.compare"),
+      icon: GitCompareArrows,
       active: location.pathname.startsWith("/compare"),
     },
     {
       to: "/documents",
-      icon: MessageSquareText,
       label: t("nav.chat"),
+      icon: MessageSquareText,
       active: location.pathname.includes("/chat"),
     },
   ];
 
   return (
     <div className="min-h-screen px-4 py-4 lg:px-6 lg:py-6">
-      <div className="page-container grid min-h-[calc(100vh-2rem)] grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
-        <aside className="glass soft-shadow rounded-[28px] p-5 lg:p-6">
-          <div className="mb-8 flex items-start justify-between gap-4">
-            <div>
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-300">
-                <Sparkles size={14} />
-                {t("brand.workspace")}
-              </div>
-              <h1 className="text-2xl font-semibold tracking-tight">
-                {t("brand.name")}
-              </h1>
-              <p className="mt-2 text-sm leading-6 text-zinc-400">
-                {t("brand.subtitle")}
-              </p>
+      <div className="page-container grid min-h-[calc(100vh-2rem)] grid-cols-1 gap-6 xl:grid-cols-[300px_1fr]">
+        <aside className="app-shell-card rounded-[32px] p-6">
+          <div className="mb-8">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full surface-soft px-3 py-1.5 text-xs text-soft">
+              <Sparkles size={14} />
+              {t("brand.workspace")}
             </div>
+
+            <h1 className="text-3xl font-semibold tracking-tight">
+              {t("brand.name")}
+            </h1>
+
+            <p className="mt-3 text-sm leading-6 text-soft">
+              {t("brand.subtitle")}
+            </p>
           </div>
 
           <nav className="space-y-2">
@@ -61,13 +64,13 @@ export function AppShell() {
 
               return (
                 <Link
-                  key={item.to + item.label}
+                  key={item.label}
                   to={item.to}
                   className={[
-                    "group flex items-center gap-3 rounded-2xl px-4 py-3 transition",
+                    "flex items-center gap-3 rounded-2xl px-4 py-3 transition",
                     item.active
-                      ? "bg-white text-zinc-950"
-                      : "text-zinc-300 hover:bg-white/10 hover:text-white",
+                      ? "bg-[var(--primary)] text-[var(--primary-contrast)]"
+                      : "surface-soft text-[var(--text)] hover:bg-[var(--panel-strong)]",
                   ].join(" ")}
                 >
                   <Icon size={18} />
@@ -77,23 +80,40 @@ export function AppShell() {
             })}
           </nav>
 
-          <div className="mt-8 border-t border-white/10 pt-6">
-            <LanguageSwitcher />
-          </div>
+          <div className="mt-8 space-y-4 border-t border-[var(--border)] pt-6">
+            <div className="flex flex-wrap items-center gap-3">
+              <LanguageSwitcher />
+              <ThemeToggle />
+            </div>
 
-          <button
-            type="button"
-            onClick={logout}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-medium text-zinc-200 transition hover:bg-white/10 hover:text-white"
-          >
-            <LogOut size={18} />
-            {t("common.logout")}
-          </button>
+            <button
+              type="button"
+              onClick={logout}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl surface-soft px-4 py-3 font-medium transition hover:bg-[var(--panel-strong)]"
+            >
+              <LogOut size={18} />
+              {t("common.logout")}
+            </button>
+          </div>
         </aside>
 
-        <main className="glass soft-shadow rounded-[28px] p-5 lg:p-8">
-          <Outlet />
-        </main>
+        <div className="app-shell-card rounded-[32px] overflow-hidden">
+          <header className="flex items-center justify-between border-b border-[var(--border)] px-6 py-5 lg:px-8">
+            <div>
+              <p className="text-sm text-muted">{t("common.workspace")}</p>
+              <h2 className="text-xl font-semibold">{t("common.dashboard")}</h2>
+            </div>
+
+            <div className="hidden md:flex items-center gap-2 rounded-full surface-soft px-3 py-2 text-sm text-soft">
+              <Sparkles size={14} />
+              {t("common.aiPowered")}
+            </div>
+          </header>
+
+          <main className="p-6 lg:p-8">
+            <Outlet />
+          </main>
+        </div>
       </div>
     </div>
   );

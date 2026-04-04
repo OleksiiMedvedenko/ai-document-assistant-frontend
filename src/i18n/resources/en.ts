@@ -12,6 +12,9 @@ export const en = {
   common: {
     logout: "Logout",
     loading: "Loading...",
+    workspace: "Workspace",
+    dashboard: "Dashboard",
+    aiPowered: "AI-powered document workflow",
   },
   documents: {
     heroBadge: "Smart document workflow",

@@ -15,6 +15,18 @@ export async function getDocumentStatus(id: string) {
   return data;
 }
 
+export async function getExtractions(id: string) {
+  const { data } = await apiClient.get(`/api/documents/${id}/extractions`);
+  return data;
+}
+
+export async function getExtractionById(id: string, extractionId: string) {
+  const { data } = await apiClient.get(
+    `/api/documents/${id}/extractions/${extractionId}`,
+  );
+  return data;
+}
+
 export async function uploadDocument(file: File) {
   const formData = new FormData();
   formData.append("file", file);
@@ -44,11 +56,17 @@ export async function extractDocument(
   return data;
 }
 
-export async function deleteDocument(id: string) {
-  await apiClient.delete(`/api/documents/${id}`);
+export async function compareDocuments(
+  id: string,
+  payload: { secondDocumentId: string; prompt: string },
+) {
+  const { data } = await apiClient.post(
+    `/api/documents/${id}/compare`,
+    payload,
+  );
+  return data;
 }
 
-export async function compareDocuments(payload: unknown) {
-  const { data } = await apiClient.post("/api/documents/compare", payload);
-  return data;
+export async function deleteDocument(id: string) {
+  await apiClient.delete(`/api/documents/${id}`);
 }

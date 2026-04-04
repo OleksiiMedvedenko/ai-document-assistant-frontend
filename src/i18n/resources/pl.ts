@@ -13,6 +13,9 @@ export const pl = {
   common: {
     logout: "Wyloguj",
     loading: "Ładowanie...",
+    workspace: "Przestrzeń robocza",
+    dashboard: "Panel",
+    aiPowered: "Przepływ dokumentów wspierany przez AI",
   },
   documents: {
     heroBadge: "Inteligentna praca z dokumentami",
