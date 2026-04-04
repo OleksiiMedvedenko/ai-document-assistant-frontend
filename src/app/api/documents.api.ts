@@ -40,14 +40,16 @@ export async function uploadDocument(file: File) {
   return data;
 }
 
-export async function summarizeDocument(id: string) {
-  const { data } = await apiClient.post(`/api/documents/${id}/summarize`);
+export async function summarizeDocument(id: string, language?: string) {
+  const { data } = await apiClient.post(`/api/documents/${id}/summarize`, {
+    language,
+  });
   return data;
 }
 
 export async function extractDocument(
   id: string,
-  payload: { extractionType: string; fields: string[] },
+  payload: { extractionType: string; fields: string[]; language?: string },
 ) {
   const { data } = await apiClient.post(
     `/api/documents/${id}/extract`,
@@ -58,7 +60,7 @@ export async function extractDocument(
 
 export async function compareDocuments(
   id: string,
-  payload: { secondDocumentId: string; prompt: string },
+  payload: { secondDocumentId: string; prompt: string; language?: string },
 ) {
   const { data } = await apiClient.post(
     `/api/documents/${id}/compare`,

@@ -11,9 +11,20 @@ type DocumentItem = {
   name?: string;
 };
 
+function mapLanguageToApi(language?: string) {
+  if (!language) return "en";
+
+  const normalized = language.toLowerCase();
+
+  if (normalized.startsWith("pl")) return "pl";
+  if (normalized.startsWith("ua") || normalized.startsWith("uk")) return "ua";
+
+  return "en";
+}
+
 export function ComparePage() {
   const { t, i18n } = useTranslation();
-
+  const apiLanguage = mapLanguageToApi(i18n.resolvedLanguage ?? i18n.language);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [firstDocumentId, setFirstDocumentId] = useState("");
   const [secondDocumentId, setSecondDocumentId] = useState("");
@@ -70,6 +81,7 @@ export function ComparePage() {
       const response = await compareDocuments(firstDocumentId, {
         secondDocumentId,
         prompt,
+        language: apiLanguage,
       });
 
       setResult(

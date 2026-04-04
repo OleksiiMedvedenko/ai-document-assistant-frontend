@@ -14,6 +14,7 @@ import {
   getDocumentStatusLabel,
   getDocumentTypeLabel,
 } from "@/app/lib/document";
+import i18n from "@/i18n";
 import {
   ArrowRight,
   Bot,
@@ -48,6 +49,13 @@ type ExtractionItem = {
   resultJson?: string;
 };
 
+function normalizeLanguage(language?: string) {
+  if (!language) return "en";
+  if (language.startsWith("pl")) return "pl";
+  if (language.startsWith("ua") || language.startsWith("uk")) return "ua";
+  return "en";
+}
+
 function statusClass(status: number | string | undefined) {
   const value = getDocumentStatusLabel(status);
 
@@ -74,6 +82,8 @@ export function DocumentDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [extractFields, setExtractFields] = useState("name,email,skills");
   const [extractType, setExtractType] = useState("structured");
+
+  const currentLanguage = normalizeLanguage(i18n.language);
 
   useEffect(() => {
     if (!id) return;
@@ -102,7 +112,7 @@ export function DocumentDetailsPage() {
     setSummaryLoading(true);
 
     try {
-      const result = await summarizeDocument(id);
+      const result = await summarizeDocument(id, currentLanguage);
       setSummary(
         result?.summary ??
           result?.content ??
@@ -125,6 +135,7 @@ export function DocumentDetailsPage() {
           .split(",")
           .map((item) => item.trim())
           .filter(Boolean),
+        language: currentLanguage,
       });
 
       const refreshed = await getExtractions(id).catch(() => []);

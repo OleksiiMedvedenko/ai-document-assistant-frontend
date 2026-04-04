@@ -5,6 +5,7 @@ import {
 } from "@/app/api/chats.api";
 import { getDocument } from "@/app/api/documents.api";
 import { getDocumentDisplayName } from "@/app/lib/document";
+import i18n from "@/i18n";
 import { Bot, Loader2, SendHorizonal, Sparkles, User2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -33,6 +34,13 @@ type DocumentDto = {
   originalFileName?: string;
   name?: string;
 };
+
+function normalizeLanguage(language?: string) {
+  if (!language) return "en";
+  if (language.startsWith("pl")) return "pl";
+  if (language.startsWith("ua") || language.startsWith("uk")) return "ua";
+  return "en";
+}
 
 function normalizeRole(role: unknown): "user" | "assistant" {
   if (typeof role === "string") {
@@ -113,6 +121,8 @@ export function DocumentChatPage() {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const currentLanguage = normalizeLanguage(i18n.language);
+
   const endRef = useRef<HTMLDivElement | null>(null);
 
   const canSend = useMemo(() => prompt.trim().length > 0 && !!id, [prompt, id]);
@@ -178,6 +188,7 @@ export function DocumentChatPage() {
       const result = await askDocumentQuestion(id, {
         message: userMessage,
         chatSessionId: activeSessionId || undefined,
+        language: currentLanguage,
       });
 
       const returnedSessionId =

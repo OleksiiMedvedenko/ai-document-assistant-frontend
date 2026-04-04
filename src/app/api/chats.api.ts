@@ -2,7 +2,7 @@ import { apiClient } from "./client";
 
 export async function askDocumentQuestion(
   documentId: string,
-  payload: { message: string; chatSessionId?: string },
+  payload: { message: string; chatSessionId?: string; language?: string },
 ) {
   const { data } = await apiClient.post(
     `/api/documents/${documentId}/chat`,
