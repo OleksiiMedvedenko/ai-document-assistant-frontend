@@ -45,18 +45,45 @@ function normalizeLanguage(language?: string) {
 function normalizeRole(role: unknown): "user" | "assistant" {
   if (typeof role === "string") {
     const value = role.toLowerCase();
-    return value === "user" || value === "human" ? "user" : "assistant";
+    if (value === "user" || value === "human") {
+      return "user";
+    }
+    if (value === "assistant" || value === "bot" || value === "system") {
+      return "assistant";
+    }
+    return "assistant";
   }
 
   if (typeof role === "number") {
-    return role === 0 ? "user" : "assistant";
+    if (role === 1) {
+      return "user";
+    }
+    if (role === 2 || role === 3) {
+      return "assistant";
+    }
+    return "assistant";
   }
 
   if (role && typeof role === "object" && "value" in role) {
     const nested = (role as { value?: unknown }).value;
+
     if (typeof nested === "string") {
       const value = nested.toLowerCase();
-      return value === "user" || value === "human" ? "user" : "assistant";
+      if (value === "user" || value === "human") {
+        return "user";
+      }
+      if (value === "assistant" || value === "bot" || value === "system") {
+        return "assistant";
+      }
+    }
+
+    if (typeof nested === "number") {
+      if (nested === 1) {
+        return "user";
+      }
+      if (nested === 2 || nested === 3) {
+        return "assistant";
+      }
     }
   }
 
