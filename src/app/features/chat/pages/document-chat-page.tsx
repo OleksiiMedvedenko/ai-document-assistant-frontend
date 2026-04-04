@@ -9,23 +9,136 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
 type SessionItem = {
-  id: string;
+  id?: string;
   title?: string;
+  name?: string;
   createdAt?: string;
 };
 
 type MessageItem = {
   id?: string;
-  role?: string;
-  content?: string;
-  message?: string;
+  role?: unknown;
+  content?: unknown;
+  message?: unknown;
+  text?: unknown;
+  answer?: unknown;
 };
 
 type DocumentDto = {
   id: string;
   fileName?: string;
+  originalFileName?: string;
   name?: string;
 };
+
+function getDocumentDisplayName(documentItem: DocumentDto | null) {
+  if (!documentItem) return "Document chat";
+
+  return (
+    documentItem.originalFileName ||
+    documentItem.fileName ||
+    documentItem.name ||
+    "Untitled document"
+  );
+}
+
+function normalizeRole(role: unknown): "user" | "assistant" {
+  if (typeof role === "string") {
+    const normalized = role.toLowerCase();
+
+    if (normalized === "user" || normalized === "human") {
+      return "user";
+    }
+
+    return "assistant";
+  }
+
+  if (typeof role === "number") {
+    return role === 0 ? "user" : "assistant";
+  }
+
+  if (role && typeof role === "object") {
+    const maybeValue =
+      "value" in role ? (role as { value?: unknown }).value : undefined;
+
+    if (typeof maybeValue === "string") {
+      const normalized = maybeValue.toLowerCase();
+      return normalized === "user" || normalized === "human"
+        ? "user"
+        : "assistant";
+    }
+  }
+
+  return "assistant";
+}
+
+function normalizeMessageContent(item: MessageItem): string {
+  const candidates = [item.content, item.message, item.text, item.answer];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim()) {
+      return candidate;
+    }
+
+    if (candidate != null && typeof candidate === "object") {
+      try {
+        return JSON.stringify(candidate, null, 2);
+      } catch {
+        return String(candidate);
+      }
+    }
+  }
+
+  return "";
+}
+
+function normalizeMessages(payload: unknown): MessageItem[] {
+  if (Array.isArray(payload)) {
+    return payload as MessageItem[];
+  }
+
+  if (payload && typeof payload === "object") {
+    const record = payload as Record<string, unknown>;
+
+    if (Array.isArray(record.items)) {
+      return record.items as MessageItem[];
+    }
+
+    if (Array.isArray(record.messages)) {
+      return record.messages as MessageItem[];
+    }
+
+    if (Array.isArray(record.data)) {
+      return record.data as MessageItem[];
+    }
+  }
+
+  return [];
+}
+
+function normalizeSessions(payload: unknown): SessionItem[] {
+  if (Array.isArray(payload)) {
+    return payload as SessionItem[];
+  }
+
+  if (payload && typeof payload === "object") {
+    const record = payload as Record<string, unknown>;
+
+    if (Array.isArray(record.items)) {
+      return record.items as SessionItem[];
+    }
+
+    if (Array.isArray(record.sessions)) {
+      return record.sessions as SessionItem[];
+    }
+
+    if (Array.isArray(record.data)) {
+      return record.data as SessionItem[];
+    }
+  }
+
+  return [];
+}
 
 export function DocumentChatPage() {
   const { id } = useParams<{ id: string }>();
@@ -45,23 +158,28 @@ export function DocumentChatPage() {
 
     async function load() {
       try {
-        const [doc, sessionList] = await Promise.all([
+        const [doc, sessionPayload] = await Promise.all([
           getDocument(id ?? ""),
           getChatSessions(id ?? "").catch(() => []),
         ]);
 
         setDocumentItem(doc);
 
-        const safeSessions = Array.isArray(sessionList) ? sessionList : [];
+        const safeSessions = normalizeSessions(sessionPayload).filter(
+          (session) => typeof session?.id === "string" && session.id.length > 0,
+        );
+
         setSessions(safeSessions);
 
         if (safeSessions[0]?.id) {
           setActiveSessionId(safeSessions[0].id);
+
           const sessionMessages = await getChatMessages(
             id ?? "",
             safeSessions[0].id,
           ).catch(() => []);
-          setMessages(Array.isArray(sessionMessages) ? sessionMessages : []);
+
+          setMessages(normalizeMessages(sessionMessages));
         }
       } finally {
         setLoading(false);
@@ -76,7 +194,7 @@ export function DocumentChatPage() {
 
     setActiveSessionId(sessionId);
     const data = await getChatMessages(id, sessionId).catch(() => []);
-    setMessages(Array.isArray(data) ? data : []);
+    setMessages(normalizeMessages(data));
   }
 
   async function handleSend() {
@@ -97,7 +215,10 @@ export function DocumentChatPage() {
       const returnedSessionId =
         result?.chatSessionId ?? result?.sessionId ?? activeSessionId;
 
-      if (returnedSessionId && returnedSessionId !== activeSessionId) {
+      if (
+        typeof returnedSessionId === "string" &&
+        returnedSessionId !== activeSessionId
+      ) {
         setActiveSessionId(returnedSessionId);
       }
 
@@ -109,12 +230,13 @@ export function DocumentChatPage() {
             result?.answer ??
             result?.response ??
             result?.content ??
+            result?.text ??
             JSON.stringify(result, null, 2),
         },
       ]);
 
       const refreshedSessions = await getChatSessions(id).catch(() => []);
-      setSessions(Array.isArray(refreshedSessions) ? refreshedSessions : []);
+      setSessions(normalizeSessions(refreshedSessions));
     } finally {
       setSending(false);
     }
@@ -129,7 +251,7 @@ export function DocumentChatPage() {
         </div>
 
         <h1 className="text-2xl font-semibold">
-          {documentItem?.fileName ?? documentItem?.name ?? "Document chat"}
+          {getDocumentDisplayName(documentItem)}
         </h1>
         <p className="mt-2 text-sm text-soft">
           Ask questions about the uploaded content and restore previous
@@ -148,9 +270,11 @@ export function DocumentChatPage() {
           ) : (
             sessions.map((session, index) => (
               <button
-                key={session.id}
+                key={session.id ?? `session-${index}`}
                 type="button"
-                onClick={() => void handleSelectSession(session.id)}
+                onClick={() =>
+                  session.id && void handleSelectSession(session.id)
+                }
                 className={[
                   "w-full rounded-2xl border px-4 py-3 text-left transition",
                   activeSessionId === session.id
@@ -159,9 +283,11 @@ export function DocumentChatPage() {
                 ].join(" ")}
               >
                 <p className="font-medium">
-                  {session.title ?? `Session ${index + 1}`}
+                  {session.title ?? session.name ?? `Session ${index + 1}`}
                 </p>
-                <p className="mt-1 text-xs opacity-80">{session.id}</p>
+                <p className="mt-1 text-xs opacity-80 break-all">
+                  {session.id}
+                </p>
               </button>
             ))
           )}
@@ -181,18 +307,18 @@ export function DocumentChatPage() {
 
           <div className="flex-1 space-y-4 overflow-auto pr-1">
             {messages.length === 0 ? (
-              <div className="flex h-full min-h-[420px] items-center justify-center rounded-2xl bg-[var(--panel-soft)] text-soft">
+              <div className="flex min-h-[420px] items-center justify-center rounded-2xl bg-[var(--panel-soft)] text-soft">
                 Start by asking a question about the document.
               </div>
             ) : (
               messages.map((item, index) => {
-                const isUser =
-                  item.role?.toLowerCase() === "user" ||
-                  item.role?.toLowerCase() === "human";
+                const normalizedRole = normalizeRole(item.role);
+                const isUser = normalizedRole === "user";
+                const content = normalizeMessageContent(item);
 
                 return (
                   <div
-                    key={item.id ?? `${item.role}-${index}`}
+                    key={item.id ?? `${normalizedRole}-${index}`}
                     className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                   >
                     <div
@@ -207,8 +333,8 @@ export function DocumentChatPage() {
                         {isUser ? <User2 size={14} /> : <Bot size={14} />}
                         {isUser ? "You" : "Assistant"}
                       </div>
-                      <div className="whitespace-pre-wrap leading-7">
-                        {item.content ?? item.message ?? ""}
+                      <div className="whitespace-pre-wrap break-words leading-7">
+                        {content}
                       </div>
                     </div>
                   </div>
@@ -237,7 +363,6 @@ export function DocumentChatPage() {
                 className="flex-1 rounded-2xl border border-[var(--border)] bg-[var(--panel-soft)] px-4 py-3 outline-none"
                 placeholder="Ask about the document, request a summary, find facts, risks or differences..."
               />
-
               <button
                 type="button"
                 onClick={() => void handleSend()}

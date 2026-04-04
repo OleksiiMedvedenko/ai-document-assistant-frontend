@@ -20,11 +20,14 @@ import { Link, useParams } from "react-router-dom";
 type DocumentDto = {
   id: string;
   fileName?: string;
+  originalFileName?: string;
   name?: string;
   status?: number | string;
   createdAt?: string;
   contentType?: string;
+  mimeType?: string;
   sizeInBytes?: number;
+  fileSizeInBytes?: number;
 };
 
 type ExtractionItem = {
@@ -56,12 +59,35 @@ function statusLabel(status: number | string | undefined) {
   return "Unknown";
 }
 
+function getDocumentDisplayName(documentItem: DocumentDto | null) {
+  if (!documentItem) return "Untitled document";
+
+  return (
+    documentItem.originalFileName ||
+    documentItem.fileName ||
+    documentItem.name ||
+    "Untitled document"
+  );
+}
+
+function getDocumentType(documentItem: DocumentDto | null) {
+  if (!documentItem) return "Document";
+
+  return documentItem.contentType || documentItem.mimeType || "Document";
+}
+
+function getDocumentSize(documentItem: DocumentDto | null) {
+  if (!documentItem) return "—";
+
+  return formatBytes(documentItem.sizeInBytes ?? documentItem.fileSizeInBytes);
+}
+
 export function DocumentDetailsPage() {
   const { id } = useParams<{ id: string }>();
 
   const [documentItem, setDocumentItem] = useState<DocumentDto | null>(null);
   const [status, setStatus] = useState<number | string | undefined>(undefined);
-  const [summary, setSummary] = useState<string>("");
+  const [summary, setSummary] = useState("");
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [extractLoading, setExtractLoading] = useState(false);
   const [extractions, setExtractions] = useState<ExtractionItem[]>([]);
@@ -152,11 +178,9 @@ export function DocumentDetailsPage() {
           </div>
 
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-semibold tracking-tight lg:text-4xl">
-                {documentItem.fileName ??
-                  documentItem.name ??
-                  "Untitled document"}
+            <div className="min-w-0 flex-1">
+              <h1 className="break-words text-3xl font-semibold tracking-tight lg:text-4xl">
+                {getDocumentDisplayName(documentItem)}
               </h1>
               <p className="mt-3 max-w-2xl text-soft">
                 View status, generate summary, extract structured data and jump
@@ -164,29 +188,31 @@ export function DocumentDetailsPage() {
               </p>
             </div>
 
-            <div className="status-ready rounded-full px-3 py-1 text-sm font-medium">
+            <div className="status-ready shrink-0 rounded-full px-3 py-1 text-sm font-medium">
               {statusLabel(status)}
             </div>
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl surface-soft p-4">
+            <div className="rounded-2xl surface-soft p-4 min-w-0">
               <p className="text-sm text-muted">File type</p>
-              <p className="mt-2 font-medium">
-                {documentItem.contentType ?? "Document"}
+              <p className="mt-2 break-all text-sm font-medium">
+                {getDocumentType(documentItem)}
               </p>
             </div>
 
-            <div className="rounded-2xl surface-soft p-4">
+            <div className="rounded-2xl surface-soft p-4 min-w-0">
               <p className="text-sm text-muted">Size</p>
               <p className="mt-2 font-medium">
-                {formatBytes(documentItem.sizeInBytes)}
+                {getDocumentSize(documentItem)}
               </p>
             </div>
 
-            <div className="rounded-2xl surface-soft p-4">
+            <div className="rounded-2xl surface-soft p-4 min-w-0">
               <p className="text-sm text-muted">Document ID</p>
-              <p className="mt-2 truncate font-medium">{documentItem.id}</p>
+              <p className="mt-2 break-all text-sm font-medium">
+                {documentItem.id}
+              </p>
             </div>
           </div>
 
@@ -269,7 +295,7 @@ export function DocumentDetailsPage() {
           </div>
 
           {summary ? (
-            <div className="rounded-2xl bg-[var(--panel-soft)] p-5 text-soft whitespace-pre-wrap">
+            <div className="rounded-2xl bg-[var(--panel-soft)] p-5 whitespace-pre-wrap text-soft break-words">
               {summary}
             </div>
           ) : (
@@ -300,11 +326,13 @@ export function DocumentDetailsPage() {
                     <p className="font-medium">
                       {item.extractionType ?? "Extraction"}
                     </p>
-                    <span className="text-xs text-muted">{item.id}</span>
+                    <span className="break-all text-xs text-muted">
+                      {item.id}
+                    </span>
                   </div>
 
                   {item.resultJson ? (
-                    <pre className="mt-3 overflow-auto rounded-xl bg-black/20 p-3 text-xs text-soft">
+                    <pre className="mt-3 overflow-auto rounded-xl bg-black/20 p-3 text-xs text-soft whitespace-pre-wrap break-words">
                       {item.resultJson}
                     </pre>
                   ) : null}

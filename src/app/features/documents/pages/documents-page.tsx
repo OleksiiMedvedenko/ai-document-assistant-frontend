@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 type DocumentItem = {
   id: string;
   fileName?: string;
+  originalFileName?: string;
   name?: string;
   status?: number | string;
   createdAt?: string;
@@ -211,7 +212,9 @@ export function DocumentsPage() {
 
                   <div className="mt-5">
                     <h4 className="line-clamp-2 text-lg font-semibold text-white">
-                      {doc.fileName ?? doc.name ?? t("documents.untitled")}
+                      {doc.fileName ??
+                        doc.originalFileName ??
+                        t("documents.untitled")}
                     </h4>
 
                     <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-400">
