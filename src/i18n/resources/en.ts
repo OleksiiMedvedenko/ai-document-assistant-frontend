@@ -5,6 +5,7 @@ export const en = {
     subtitle: "Analyze, compare, extract and chat with documents in one place.",
   },
   nav: {
+    home: "Home",
     documents: "Documents",
     compare: "Compare",
     chat: "AI Chat",
@@ -15,6 +16,9 @@ export const en = {
     workspace: "Workspace",
     dashboard: "Dashboard",
     aiPowered: "AI-powered document workflow",
+    language: "Language",
+    close: "Close",
+    openMenu: "Open menu",
   },
   documents: {
     heroBadge: "Smart document workflow",
@@ -158,6 +162,44 @@ export const en = {
       loaderTitle: "Creating your account",
       loaderSubtitle:
         "Preparing your workspace and redirecting you to sign in...",
+    },
+  },
+  home: {
+    badge: "New AI workspace",
+    title: "A cleaner place to upload, compare and chat with documents.",
+    subtitle:
+      "Start from one simple dashboard, then jump into documents, AI chat and comparisons without fighting the interface.",
+    primaryCta: "Open documents",
+    secondaryCta: "Start compare",
+    quickActionsEyebrow: "Start here",
+    quickActionsTitle: "Quick actions",
+    highlightsEyebrow: "Why this workspace",
+    highlightsTitle: "What you can do",
+    preview: {
+      documents: "Documents",
+      ready: "AI-ready",
+      flow: "Workflow",
+    },
+    actions: {
+      uploadTitle: "Upload and manage files",
+      uploadDescription:
+        "Open the document library and start working with your files.",
+      compareTitle: "Compare two documents",
+      compareDescription: "Run AI comparison and quickly spot key differences.",
+      chatTitle: "Continue AI chat",
+      chatDescription:
+        "Jump into document conversations and continue analysis.",
+    },
+    highlights: {
+      libraryTitle: "Cleaner document library",
+      libraryDescription:
+        "Browse, search and open files in a simpler workspace.",
+      aiTitle: "Faster AI actions",
+      aiDescription:
+        "Move from files to summary, extraction and chat with less friction.",
+      compareTitle: "Better comparison flow",
+      compareDescription:
+        "Compare documents from one focused workspace instead of a cluttered layout.",
     },
   },
 };

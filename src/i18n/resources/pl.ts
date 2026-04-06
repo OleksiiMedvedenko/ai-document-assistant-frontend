@@ -6,16 +6,20 @@ export const pl = {
       "Analizuj, porównuj, wyciągaj dane i rozmawiaj z dokumentami w jednym miejscu.",
   },
   nav: {
+    home: "Strona główna",
     documents: "Dokumenty",
     compare: "Porównanie",
-    chat: "Czat AI",
+    chat: "AI Chat",
   },
   common: {
-    logout: "Wyloguj",
+    logout: "Wyloguj się",
     loading: "Ładowanie...",
-    workspace: "Przestrzeń robocza",
+    workspace: "Przestrzeń",
     dashboard: "Panel",
-    aiPowered: "Przepływ dokumentów wspierany przez AI",
+    aiPowered: "Workflow dokumentów wspierany przez AI",
+    language: "Język",
+    close: "Zamknij",
+    openMenu: "Otwórz menu",
   },
   documents: {
     heroBadge: "Inteligentna praca z dokumentami",
@@ -160,5 +164,43 @@ export const pl = {
     loaderTitle: "Tworzymy Twoje konto",
     loaderSubtitle:
       "Przygotowujemy przestrzeń i przekierowujemy do logowania...",
+  },
+  home: {
+    badge: "Nowa przestrzeń AI",
+    title: "Lepsze miejsce do wgrywania, porównywania i rozmowy z dokumentami.",
+    subtitle:
+      "Zacznij od prostego panelu głównego, a potem przechodź do dokumentów, AI chatu i porównań bez walki z interfejsem.",
+    primaryCta: "Otwórz dokumenty",
+    secondaryCta: "Uruchom porównanie",
+    quickActionsEyebrow: "Start",
+    quickActionsTitle: "Szybkie akcje",
+    highlightsEyebrow: "Dlaczego ten workspace",
+    highlightsTitle: "Co możesz zrobić",
+    preview: {
+      documents: "Dokumenty",
+      ready: "Gotowe do AI",
+      flow: "Workflow",
+    },
+    actions: {
+      uploadTitle: "Wgrywaj i zarządzaj plikami",
+      uploadDescription:
+        "Otwórz bibliotekę dokumentów i zacznij pracę z plikami.",
+      compareTitle: "Porównaj dwa dokumenty",
+      compareDescription:
+        "Uruchom porównanie AI i szybko zobacz najważniejsze różnice.",
+      chatTitle: "Kontynuuj AI chat",
+      chatDescription: "Przejdź do rozmów o dokumentach i kontynuuj analizę.",
+    },
+    highlights: {
+      libraryTitle: "Czytelniejsza biblioteka dokumentów",
+      libraryDescription:
+        "Przeglądaj, wyszukuj i otwieraj pliki w prostszej przestrzeni.",
+      aiTitle: "Szybsze akcje AI",
+      aiDescription:
+        "Przechodź od plików do streszczeń, ekstrakcji i czatu z mniejszym tarciem.",
+      compareTitle: "Lepszy workflow porównań",
+      compareDescription:
+        "Porównuj dokumenty w jednym uporządkowanym miejscu zamiast w przeładowanym widoku.",
+    },
   },
 };

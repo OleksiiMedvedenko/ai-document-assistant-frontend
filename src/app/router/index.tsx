@@ -7,11 +7,12 @@ import { DocumentChatPage } from "../features/chat/pages/document-chat-page";
 import { ComparePage } from "../features/compare/pages/compare-page";
 import { DocumentDetailsPage } from "../features/documents/pages/document-details-page";
 import { DocumentsPage } from "../features/documents/pages/documents-page";
+import { HomePage } from "../features/home/pages/home-page";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Navigate to="/documents" replace />,
+    element: <Navigate to="/home" replace />,
   },
   {
     path: "/login",
@@ -28,10 +29,26 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { path: "/documents", element: <DocumentsPage /> },
-      { path: "/documents/:id", element: <DocumentDetailsPage /> },
-      { path: "/documents/:id/chat", element: <DocumentChatPage /> },
-      { path: "/compare", element: <ComparePage /> },
+      {
+        path: "/home",
+        element: <HomePage />,
+      },
+      {
+        path: "/documents",
+        element: <DocumentsPage />,
+      },
+      {
+        path: "/documents/:id",
+        element: <DocumentDetailsPage />,
+      },
+      {
+        path: "/documents/:id/chat",
+        element: <DocumentChatPage />,
+      },
+      {
+        path: "/compare",
+        element: <ComparePage />,
+      },
     ],
   },
 ]);

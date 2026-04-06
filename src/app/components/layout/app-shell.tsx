@@ -1,119 +1,165 @@
 import { LanguageSwitcher } from "@/app/components/layout/language-switcher";
-import { ThemeToggle } from "@/app/components/layout/theme-toggle";
 import { useAuthStore } from "@/app/store/auth.store";
 import {
   FileText,
   GitCompareArrows,
+  Home,
   LogOut,
   MessageSquareText,
+  PanelLeft,
   Sparkles,
+  X,
 } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation } from "react-router-dom";
+import "../../styles/app-shell.css";
 
 export function AppShell() {
   const location = useLocation();
   const { t } = useTranslation();
   const logout = useAuthStore((state) => state.logout);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const navItems = [
-    {
-      to: "/documents",
-      label: t("nav.documents"),
-      icon: FileText,
-      active:
-        location.pathname.startsWith("/documents") &&
-        !location.pathname.includes("/chat"),
-    },
-    {
-      to: "/compare",
-      label: t("nav.compare"),
-      icon: GitCompareArrows,
-      active: location.pathname.startsWith("/compare"),
-    },
-    {
-      to: "/documents",
-      label: t("nav.chat"),
-      icon: MessageSquareText,
-      active: location.pathname.includes("/chat"),
-    },
-  ];
+  const navItems = useMemo(
+    () => [
+      {
+        to: "/home",
+        label: t("nav.home"),
+        icon: Home,
+        active: location.pathname === "/home",
+      },
+      {
+        to: "/documents",
+        label: t("nav.documents"),
+        icon: FileText,
+        active:
+          location.pathname.startsWith("/documents") &&
+          !location.pathname.includes("/chat"),
+      },
+      {
+        to: "/compare",
+        label: t("nav.compare"),
+        icon: GitCompareArrows,
+        active: location.pathname.startsWith("/compare"),
+      },
+      {
+        to: "/documents",
+        label: t("nav.chat"),
+        icon: MessageSquareText,
+        active: location.pathname.includes("/chat"),
+      },
+    ],
+    [location.pathname, t],
+  );
+
+  const pageTitle = useMemo(() => {
+    if (location.pathname === "/home") return t("nav.home");
+    if (location.pathname.startsWith("/compare")) return t("nav.compare");
+    if (location.pathname.includes("/chat")) return t("nav.chat");
+    return t("nav.documents");
+  }, [location.pathname, t]);
 
   return (
-    <div className="min-h-screen px-4 py-4 lg:px-6 lg:py-6">
-      <div className="page-container grid min-h-[calc(100vh-2rem)] grid-cols-1 gap-6 xl:grid-cols-[280px_1fr]">
-        <aside className="app-shell-card flex flex-col rounded-[32px] p-5 lg:p-6">
-          <div className="mb-8">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full surface-soft px-3 py-1.5 text-xs text-soft">
-              <Sparkles size={14} />
-              {t("brand.workspace")}
+    <div className="app-shell">
+      <aside
+        className={`app-sidebar ${sidebarOpen ? "app-sidebar--open" : ""}`}
+      >
+        <div className="app-sidebar__top">
+          <Link
+            to="/home"
+            className="app-brand"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <div className="app-brand__icon">
+              <Sparkles size={18} />
             </div>
 
-            <h1 className="text-3xl font-semibold tracking-tight">
-              {t("brand.name")}
-            </h1>
+            <div className="app-brand__text">
+              <span>{t("brand.workspace")}</span>
+              <strong>{t("brand.name")}</strong>
+            </div>
+          </Link>
 
-            <p className="mt-3 text-sm leading-6 text-soft">
-              {t("brand.subtitle")}
-            </p>
+          <button
+            type="button"
+            className="app-sidebar__close"
+            onClick={() => setSidebarOpen(false)}
+            aria-label={t("common.close")}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <nav className="app-sidebar__nav">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.to + item.label}
+                to={item.to}
+                className={`app-nav-link ${item.active ? "app-nav-link--active" : ""}`}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Icon size={18} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="app-sidebar__bottom">
+          <div className="app-sidebar__lang">
+            <p>{t("common.language")}</p>
+            <LanguageSwitcher />
           </div>
 
-          <nav className="space-y-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
+          <button type="button" className="app-logout" onClick={logout}>
+            <LogOut size={18} />
+            <span>{t("common.logout")}</span>
+          </button>
+        </div>
+      </aside>
 
-              return (
-                <Link
-                  key={item.label}
-                  to={item.to}
-                  className={[
-                    "flex items-center gap-3 rounded-2xl px-4 py-3 transition",
-                    item.active
-                      ? "primary-button"
-                      : "surface-soft hover:bg-[var(--panel-strong)]",
-                  ].join(" ")}
-                >
-                  <Icon size={18} />
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
+      {sidebarOpen ? (
+        <button
+          type="button"
+          className="app-shell__backdrop"
+          onClick={() => setSidebarOpen(false)}
+          aria-label={t("common.close")}
+        />
+      ) : null}
 
-          <div className="mt-8 space-y-4 border-t border-[var(--border)] pt-6">
-            <div className="flex flex-wrap items-center gap-3">
-              <LanguageSwitcher />
-              <ThemeToggle />
-            </div>
-
+      <div className="app-shell__content">
+        <header className="app-topbar">
+          <div className="app-topbar__left">
             <button
               type="button"
-              onClick={logout}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl surface-soft px-4 py-3 font-medium transition hover:bg-[var(--panel-strong)]"
+              className="app-topbar__menu"
+              onClick={() => setSidebarOpen(true)}
+              aria-label={t("common.openMenu")}
             >
-              <LogOut size={18} />
-              {t("common.logout")}
+              <PanelLeft size={18} />
             </button>
-          </div>
-        </aside>
 
-        <div className="app-shell-card overflow-hidden rounded-[32px]">
-          <header className="flex items-center justify-between border-b border-[var(--border)] px-6 py-5 lg:px-8">
             <div>
-              <p className="text-sm text-muted">{t("common.workspace")}</p>
-              <h2 className="text-xl font-semibold">{t("common.dashboard")}</h2>
+              <p className="app-topbar__eyebrow">{t("common.workspace")}</p>
+              <h1>{pageTitle}</h1>
             </div>
+          </div>
 
-            <div className="hidden items-center gap-2 rounded-full surface-soft px-3 py-2 text-sm text-soft md:flex">
-              <Sparkles size={14} />
-              {t("common.aiPowered")}
+          <div className="app-topbar__right">
+            <div className="app-topbar__status">
+              <Sparkles size={16} />
+              <span>{t("common.aiPowered")}</span>
             </div>
-          </header>
+          </div>
+        </header>
 
-          <main className="p-6 lg:p-8">
-            <Outlet />
-          </main>
-        </div>
+        <main className="app-main">
+          <Outlet />
+        </main>
       </div>
     </div>
   );
