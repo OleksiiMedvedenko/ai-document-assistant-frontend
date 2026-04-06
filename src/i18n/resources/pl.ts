@@ -114,6 +114,14 @@ export const pl = {
     setupKicker: "Konfiguracja porównania",
     setupTitle: "Wybierz dokumenty i prompt",
     resultKicker: "Porównanie AI",
+    searchDocuments: "Szukaj dokumentów",
+    swap: "Zamień dokumenty",
+    suggestionGeneral:
+      "Porównaj te dokumenty i wskaż najważniejsze różnice, podobieństwa oraz ryzyka.",
+    suggestionDifferences:
+      "Skup się wyłącznie na kluczowych różnicach między dokumentami.",
+    suggestionRisks: "Wypisz ryzyka, braki i potencjalne problemy.",
+    suggestionSummary: "Przygotuj krótkie podsumowanie porównania w punktach.",
   },
   deleteModal: {
     title: "Usuń dokument",

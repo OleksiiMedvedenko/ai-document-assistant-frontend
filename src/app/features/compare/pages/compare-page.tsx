@@ -2,9 +2,12 @@ import { compareDocuments, getDocuments } from "@/app/api/documents.api";
 import { getDocumentDisplayName } from "@/app/lib/document";
 import {
   ArrowRight,
+  Check,
+  ChevronsUpDown,
   FileText,
   GitCompareArrows,
   Loader2,
+  Search,
   Sparkles,
   WandSparkles,
 } from "lucide-react";
@@ -18,6 +21,8 @@ type DocumentItem = {
   originalFileName?: string;
   name?: string;
 };
+
+type PickerMode = "first" | "second" | null;
 
 function mapLanguageToApi(language?: string) {
   if (!language) return "en";
@@ -40,6 +45,9 @@ export function ComparePage() {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(true);
   const [comparing, setComparing] = useState(false);
+
+  const [pickerOpen, setPickerOpen] = useState<PickerMode>(null);
+  const [pickerSearch, setPickerSearch] = useState("");
 
   const defaultPrompt = t("compare.defaultPrompt");
   const previousDefaultPromptRef = useRef(defaultPrompt);
@@ -72,6 +80,32 @@ export function ComparePage() {
     previousDefaultPromptRef.current = defaultPrompt;
   }, [defaultPrompt, i18n.resolvedLanguage, prompt]);
 
+  useEffect(() => {
+    if (!pickerOpen) return;
+
+    function handleOutsideClick(event: MouseEvent) {
+      const target = event.target as HTMLElement | null;
+
+      if (!target?.closest(".doc-picker")) {
+        setPickerOpen(null);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setPickerOpen(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [pickerOpen]);
+
   const compareDisabled = useMemo(() => {
     return (
       !firstDocumentId ||
@@ -81,17 +115,51 @@ export function ComparePage() {
     );
   }, [firstDocumentId, secondDocumentId, comparing]);
 
-  const firstDocName =
-    documents.find((doc) => doc.id === firstDocumentId) &&
-    getDocumentDisplayName(
-      documents.find((doc) => doc.id === firstDocumentId)!,
-    );
+  const firstDoc = useMemo(
+    () => documents.find((doc) => doc.id === firstDocumentId) ?? null,
+    [documents, firstDocumentId],
+  );
 
-  const secondDocName =
-    documents.find((doc) => doc.id === secondDocumentId) &&
-    getDocumentDisplayName(
-      documents.find((doc) => doc.id === secondDocumentId)!,
+  const secondDoc = useMemo(
+    () => documents.find((doc) => doc.id === secondDocumentId) ?? null,
+    [documents, secondDocumentId],
+  );
+
+  const filteredDocuments = useMemo(() => {
+    const normalized = pickerSearch.trim().toLowerCase();
+
+    if (!normalized) return documents;
+
+    return documents.filter((doc) =>
+      getDocumentDisplayName(doc).toLowerCase().includes(normalized),
     );
+  }, [documents, pickerSearch]);
+
+  const suggestionPrompts = [
+    t("compare.suggestionGeneral"),
+    t("compare.suggestionDifferences"),
+    t("compare.suggestionRisks"),
+    t("compare.suggestionSummary"),
+  ];
+
+  function handlePickDocument(
+    mode: Exclude<PickerMode, null>,
+    documentId: string,
+  ) {
+    if (mode === "first") {
+      setFirstDocumentId(documentId);
+    } else {
+      setSecondDocumentId(documentId);
+    }
+
+    setPickerOpen(null);
+    setPickerSearch("");
+  }
+
+  function handleSwapDocuments() {
+    setFirstDocumentId(secondDocumentId);
+    setSecondDocumentId(firstDocumentId);
+  }
 
   async function handleCompare() {
     if (!firstDocumentId || !secondDocumentId) return;
@@ -134,7 +202,11 @@ export function ComparePage() {
           <div className="compare-preview-card">
             <div className="compare-preview-card__item">
               <FileText size={18} />
-              <span>{firstDocName || t("compare.first")}</span>
+              <span>
+                {firstDoc
+                  ? getDocumentDisplayName(firstDoc)
+                  : t("compare.first")}
+              </span>
             </div>
 
             <div className="compare-preview-card__middle">
@@ -143,7 +215,11 @@ export function ComparePage() {
 
             <div className="compare-preview-card__item">
               <FileText size={18} />
-              <span>{secondDocName || t("compare.second")}</span>
+              <span>
+                {secondDoc
+                  ? getDocumentDisplayName(secondDoc)
+                  : t("compare.second")}
+              </span>
             </div>
           </div>
         </div>
@@ -159,36 +235,161 @@ export function ComparePage() {
           </div>
 
           <div className="compare-form-grid">
-            <div className="compare-field">
-              <label>{t("compare.first")}</label>
-              <select
-                value={firstDocumentId}
-                onChange={(e) => setFirstDocumentId(e.target.value)}
+            <div className="compare-pickers">
+              <div className="doc-picker">
+                <label className="compare-field__label">
+                  {t("compare.first")}
+                </label>
+
+                <button
+                  type="button"
+                  className="doc-picker__trigger"
+                  onClick={() =>
+                    setPickerOpen((current) =>
+                      current === "first" ? null : "first",
+                    )
+                  }
+                >
+                  <div className="doc-picker__trigger-content">
+                    <FileText size={18} />
+                    <span>
+                      {firstDoc
+                        ? getDocumentDisplayName(firstDoc)
+                        : t("compare.first")}
+                    </span>
+                  </div>
+                  <ChevronsUpDown size={16} />
+                </button>
+
+                {pickerOpen === "first" ? (
+                  <div className="doc-picker__dropdown">
+                    <div className="doc-picker__search">
+                      <Search size={16} />
+                      <input
+                        value={pickerSearch}
+                        onChange={(e) => setPickerSearch(e.target.value)}
+                        placeholder={t("compare.searchDocuments")}
+                      />
+                    </div>
+
+                    <div className="doc-picker__list">
+                      {filteredDocuments.map((doc) => {
+                        const active = doc.id === firstDocumentId;
+
+                        return (
+                          <button
+                            key={doc.id}
+                            type="button"
+                            className={`doc-picker__option ${
+                              active ? "doc-picker__option--active" : ""
+                            }`}
+                            onClick={() => handlePickDocument("first", doc.id)}
+                          >
+                            <div className="doc-picker__option-main">
+                              <FileText size={16} />
+                              <span>{getDocumentDisplayName(doc)}</span>
+                            </div>
+
+                            {active ? <Check size={16} /> : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              <button
+                type="button"
+                className="compare-swap-button"
+                onClick={handleSwapDocuments}
+                disabled={!firstDocumentId || !secondDocumentId}
+                aria-label={t("compare.swap")}
               >
-                {documents.map((doc) => (
-                  <option key={doc.id} value={doc.id}>
-                    {getDocumentDisplayName(doc)}
-                  </option>
-                ))}
-              </select>
+                <GitCompareArrows size={18} />
+              </button>
+
+              <div className="doc-picker">
+                <label className="compare-field__label">
+                  {t("compare.second")}
+                </label>
+
+                <button
+                  type="button"
+                  className="doc-picker__trigger"
+                  onClick={() =>
+                    setPickerOpen((current) =>
+                      current === "second" ? null : "second",
+                    )
+                  }
+                >
+                  <div className="doc-picker__trigger-content">
+                    <FileText size={18} />
+                    <span>
+                      {secondDoc
+                        ? getDocumentDisplayName(secondDoc)
+                        : t("compare.second")}
+                    </span>
+                  </div>
+                  <ChevronsUpDown size={16} />
+                </button>
+
+                {pickerOpen === "second" ? (
+                  <div className="doc-picker__dropdown">
+                    <div className="doc-picker__search">
+                      <Search size={16} />
+                      <input
+                        value={pickerSearch}
+                        onChange={(e) => setPickerSearch(e.target.value)}
+                        placeholder={t("compare.searchDocuments")}
+                      />
+                    </div>
+
+                    <div className="doc-picker__list">
+                      {filteredDocuments.map((doc) => {
+                        const active = doc.id === secondDocumentId;
+
+                        return (
+                          <button
+                            key={doc.id}
+                            type="button"
+                            className={`doc-picker__option ${
+                              active ? "doc-picker__option--active" : ""
+                            }`}
+                            onClick={() => handlePickDocument("second", doc.id)}
+                          >
+                            <div className="doc-picker__option-main">
+                              <FileText size={16} />
+                              <span>{getDocumentDisplayName(doc)}</span>
+                            </div>
+
+                            {active ? <Check size={16} /> : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </div>
 
-            <div className="compare-field">
-              <label>{t("compare.second")}</label>
-              <select
-                value={secondDocumentId}
-                onChange={(e) => setSecondDocumentId(e.target.value)}
-              >
-                {documents.map((doc) => (
-                  <option key={doc.id} value={doc.id}>
-                    {getDocumentDisplayName(doc)}
-                  </option>
-                ))}
-              </select>
+            <div className="compare-suggestions">
+              {suggestionPrompts.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  className="compare-suggestion-chip"
+                  onClick={() => setPrompt(item)}
+                >
+                  {item}
+                </button>
+              ))}
             </div>
 
             <div className="compare-field compare-field--full">
-              <label>{t("compare.prompt")}</label>
+              <label className="compare-field__label">
+                {t("compare.prompt")}
+              </label>
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}

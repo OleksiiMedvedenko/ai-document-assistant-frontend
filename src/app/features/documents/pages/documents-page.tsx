@@ -22,7 +22,7 @@ import {
   UploadCloud,
   WandSparkles,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import "../../../styles/documents-page.css";
@@ -38,6 +38,8 @@ type DocumentItem = {
   mimeType?: string;
 };
 
+const STATUS_POLL_INTERVAL_MS = 3000;
+
 function statusClass(status: number | string | undefined) {
   const value = getDocumentStatusLabel(status);
 
@@ -46,6 +48,11 @@ function statusClass(status: number | string | undefined) {
   if (value === "Completed") return "doc-status doc-status--completed";
   if (value === "Ready") return "doc-status doc-status--ready";
   return "doc-status doc-status--unknown";
+}
+
+function isProcessingStatus(status: number | string | undefined) {
+  const value = getDocumentStatusLabel(status);
+  return value === "Pending" || value === "Processing";
 }
 
 export function DocumentsPage() {
@@ -58,17 +65,61 @@ export function DocumentsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
 
-  async function loadDocuments() {
+  const pollingRef = useRef<number | null>(null);
+
+  async function loadDocuments(showLoader = false) {
+    if (showLoader) {
+      setLoading(true);
+    }
+
     try {
       const data = await getDocuments();
       setDocuments(Array.isArray(data) ? data : []);
     } finally {
-      setLoading(false);
+      if (showLoader) {
+        setLoading(false);
+      }
     }
   }
 
   useEffect(() => {
-    void loadDocuments();
+    void loadDocuments(true);
+  }, []);
+
+  const hasProcessingDocuments = useMemo(() => {
+    return documents.some((doc) => isProcessingStatus(doc.status));
+  }, [documents]);
+
+  useEffect(() => {
+    if (!hasProcessingDocuments) {
+      if (pollingRef.current) {
+        window.clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      return;
+    }
+
+    if (pollingRef.current) return;
+
+    pollingRef.current = window.setInterval(() => {
+      void loadDocuments(false);
+    }, STATUS_POLL_INTERVAL_MS);
+
+    return () => {
+      if (pollingRef.current) {
+        window.clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [hasProcessingDocuments]);
+
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        window.clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
   }, []);
 
   async function handleUpload(file: File) {
@@ -76,7 +127,14 @@ export function DocumentsPage() {
 
     try {
       await uploadDocument(file);
-      await loadDocuments();
+
+      await loadDocuments(false);
+
+      if (!pollingRef.current) {
+        pollingRef.current = window.setInterval(() => {
+          void loadDocuments(false);
+        }, STATUS_POLL_INTERVAL_MS);
+      }
     } finally {
       setUploading(false);
     }
@@ -90,7 +148,7 @@ export function DocumentsPage() {
     try {
       await deleteDocument(deleteId);
       setDeleteId(null);
-      await loadDocuments();
+      await loadDocuments(false);
     } finally {
       setDeleteBusy(false);
     }
@@ -134,7 +192,10 @@ export function DocumentsPage() {
               className="documents-upload__input"
               onChange={(event) => {
                 const file = event.target.files?.[0];
-                if (file) void handleUpload(file);
+                if (file) {
+                  void handleUpload(file);
+                  event.currentTarget.value = "";
+                }
               }}
             />
 

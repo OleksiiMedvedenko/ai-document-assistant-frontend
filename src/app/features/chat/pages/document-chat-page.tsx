@@ -353,6 +353,15 @@ export function DocumentChatPage() {
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+
+                if (canSend && !sending) {
+                  void handleSend();
+                }
+              }
+            }}
             rows={3}
             placeholder={t("chat.placeholder")}
           />

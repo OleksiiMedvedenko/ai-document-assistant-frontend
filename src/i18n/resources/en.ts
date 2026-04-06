@@ -113,6 +113,14 @@ export const en = {
     setupKicker: "Compare setup",
     setupTitle: "Choose documents and prompt",
     resultKicker: "AI comparison",
+    searchDocuments: "Search documents",
+    swap: "Swap documents",
+    suggestionGeneral:
+      "Compare these documents and identify the most important differences, similarities and risks.",
+    suggestionDifferences:
+      "Focus only on the key differences between the documents.",
+    suggestionRisks: "List risks, gaps and potential issues.",
+    suggestionSummary: "Prepare a short bullet-point comparison summary.",
   },
   deleteModal: {
     title: "Delete document",
