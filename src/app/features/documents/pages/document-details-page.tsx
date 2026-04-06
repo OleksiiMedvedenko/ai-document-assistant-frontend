@@ -16,6 +16,7 @@ import {
 } from "@/app/lib/document";
 import i18n from "@/i18n";
 import {
+  AlertCircle,
   ArrowRight,
   Bot,
   GitCompareArrows,
@@ -66,6 +67,87 @@ function statusClass(status: number | string | undefined) {
   return "doc-status doc-status--unknown";
 }
 
+function getApiErrorMessage(error: unknown, fallback: string) {
+  if (!error) {
+    return fallback;
+  }
+
+  if (typeof error === "string" && error.trim()) {
+    return error;
+  }
+
+  if (typeof error !== "object") {
+    return fallback;
+  }
+
+  const anyError = error as {
+    response?: {
+      data?: unknown;
+      status?: number;
+      statusText?: string;
+    };
+    data?: unknown;
+    message?: string;
+    error?: string;
+  };
+
+  const responseData = anyError.response?.data;
+  const directData = anyError.data;
+
+  const candidates: unknown[] = [
+    responseData,
+    directData,
+    anyError.error,
+    anyError.message,
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+
+    if (typeof candidate === "string" && candidate.trim()) {
+      if (
+        candidate === "Request failed with status code 429" &&
+        anyError.response?.status === 429
+      ) {
+        return fallback;
+      }
+
+      return candidate;
+    }
+
+    if (typeof candidate === "object") {
+      const record = candidate as Record<string, unknown>;
+
+      const nestedMessage =
+        record.message ??
+        record.error ??
+        record.title ??
+        record.detail ??
+        record.errors;
+
+      if (typeof nestedMessage === "string" && nestedMessage.trim()) {
+        return nestedMessage;
+      }
+
+      if (Array.isArray(nestedMessage) && nestedMessage.length > 0) {
+        const firstText = nestedMessage.find(
+          (item) => typeof item === "string" && item.trim(),
+        );
+
+        if (typeof firstText === "string") {
+          return firstText;
+        }
+      }
+    }
+  }
+
+  if (anyError.response?.status === 429) {
+    return fallback;
+  }
+
+  return fallback;
+}
+
 export function DocumentDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -82,6 +164,7 @@ export function DocumentDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [extractFields, setExtractFields] = useState("name,email,skills");
   const [extractType, setExtractType] = useState("structured");
+  const [actionError, setActionError] = useState("");
 
   const currentLanguage = normalizeLanguage(i18n.language);
 
@@ -90,6 +173,8 @@ export function DocumentDetailsPage() {
 
     async function load() {
       try {
+        setActionError("");
+
         const [doc, docStatus, docExtractions] = await Promise.all([
           getDocument(id ?? ""),
           getDocumentStatus(id ?? ""),
@@ -99,17 +184,20 @@ export function DocumentDetailsPage() {
         setDocumentItem(doc);
         setStatus(docStatus?.status ?? docStatus);
         setExtractions(Array.isArray(docExtractions) ? docExtractions : []);
+      } catch (error) {
+        setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
       } finally {
         setLoading(false);
       }
     }
 
     void load();
-  }, [id]);
+  }, [id, t]);
 
   async function handleSummarize() {
     if (!id) return;
     setSummaryLoading(true);
+    setActionError("");
 
     try {
       const result = await summarizeDocument(id, currentLanguage);
@@ -119,6 +207,8 @@ export function DocumentDetailsPage() {
           result?.text ??
           JSON.stringify(result, null, 2),
       );
+    } catch (error) {
+      setActionError(getApiErrorMessage(error, t("limits.summaryReached")));
     } finally {
       setSummaryLoading(false);
     }
@@ -127,6 +217,7 @@ export function DocumentDetailsPage() {
   async function handleExtract() {
     if (!id) return;
     setExtractLoading(true);
+    setActionError("");
 
     try {
       await extractDocument(id, {
@@ -140,6 +231,8 @@ export function DocumentDetailsPage() {
 
       const refreshed = await getExtractions(id).catch(() => []);
       setExtractions(Array.isArray(refreshed) ? refreshed : []);
+    } catch (error) {
+      setActionError(getApiErrorMessage(error, t("limits.extractReached")));
     } finally {
       setExtractLoading(false);
     }
@@ -149,10 +242,13 @@ export function DocumentDetailsPage() {
     if (!id) return;
 
     setDeleteBusy(true);
+    setActionError("");
 
     try {
       await deleteDocument(id);
       navigate("/documents");
+    } catch (error) {
+      setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
     } finally {
       setDeleteBusy(false);
     }
@@ -194,6 +290,13 @@ export function DocumentDetailsPage() {
             {t(`documents.status.${statusLabel.toLowerCase()}`, statusLabel)}
           </div>
         </div>
+
+        {actionError ? (
+          <div className="form-alert form-alert--error">
+            <AlertCircle size={16} />
+            <span>{actionError}</span>
+          </div>
+        ) : null}
 
         <div className="document-details-metrics">
           <div className="document-metric-card">

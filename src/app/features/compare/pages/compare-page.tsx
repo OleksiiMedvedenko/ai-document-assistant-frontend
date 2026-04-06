@@ -1,6 +1,7 @@
 import { compareDocuments, getDocuments } from "@/app/api/documents.api";
 import { getDocumentDisplayName } from "@/app/lib/document";
 import {
+  AlertCircle,
   ArrowRight,
   Check,
   ChevronsUpDown,
@@ -35,6 +36,87 @@ function mapLanguageToApi(language?: string) {
   return "en";
 }
 
+function getApiErrorMessage(error: unknown, fallback: string) {
+  if (!error) {
+    return fallback;
+  }
+
+  if (typeof error === "string" && error.trim()) {
+    return error;
+  }
+
+  if (typeof error !== "object") {
+    return fallback;
+  }
+
+  const anyError = error as {
+    response?: {
+      data?: unknown;
+      status?: number;
+      statusText?: string;
+    };
+    data?: unknown;
+    message?: string;
+    error?: string;
+  };
+
+  const responseData = anyError.response?.data;
+  const directData = anyError.data;
+
+  const candidates: unknown[] = [
+    responseData,
+    directData,
+    anyError.error,
+    anyError.message,
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+
+    if (typeof candidate === "string" && candidate.trim()) {
+      if (
+        candidate === "Request failed with status code 429" &&
+        anyError.response?.status === 429
+      ) {
+        return fallback;
+      }
+
+      return candidate;
+    }
+
+    if (typeof candidate === "object") {
+      const record = candidate as Record<string, unknown>;
+
+      const nestedMessage =
+        record.message ??
+        record.error ??
+        record.title ??
+        record.detail ??
+        record.errors;
+
+      if (typeof nestedMessage === "string" && nestedMessage.trim()) {
+        return nestedMessage;
+      }
+
+      if (Array.isArray(nestedMessage) && nestedMessage.length > 0) {
+        const firstText = nestedMessage.find(
+          (item) => typeof item === "string" && item.trim(),
+        );
+
+        if (typeof firstText === "string") {
+          return firstText;
+        }
+      }
+    }
+  }
+
+  if (anyError.response?.status === 429) {
+    return fallback;
+  }
+
+  return fallback;
+}
+
 export function ComparePage() {
   const { t, i18n } = useTranslation();
   const apiLanguage = mapLanguageToApi(i18n.resolvedLanguage ?? i18n.language);
@@ -45,6 +127,7 @@ export function ComparePage() {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(true);
   const [comparing, setComparing] = useState(false);
+  const [actionError, setActionError] = useState("");
 
   const [pickerOpen, setPickerOpen] = useState<PickerMode>(null);
   const [pickerSearch, setPickerSearch] = useState("");
@@ -56,19 +139,23 @@ export function ComparePage() {
   useEffect(() => {
     async function load() {
       try {
+        setActionError("");
+
         const data = await getDocuments();
         const list = Array.isArray(data) ? data : [];
         setDocuments(list);
 
         if (list[0]?.id) setFirstDocumentId(list[0].id);
         if (list[1]?.id) setSecondDocumentId(list[1].id);
+      } catch (error) {
+        setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
       } finally {
         setLoading(false);
       }
     }
 
     void load();
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const previousDefault = previousDefaultPromptRef.current;
@@ -165,6 +252,7 @@ export function ComparePage() {
     if (!firstDocumentId || !secondDocumentId) return;
 
     setComparing(true);
+    setActionError("");
 
     try {
       const response = await compareDocuments(firstDocumentId, {
@@ -180,6 +268,8 @@ export function ComparePage() {
           response?.text ??
           JSON.stringify(response, null, 2),
       );
+    } catch (error) {
+      setActionError(getApiErrorMessage(error, t("limits.compareReached")));
     } finally {
       setComparing(false);
     }
@@ -233,6 +323,13 @@ export function ComparePage() {
               <h2>{t("compare.setupTitle")}</h2>
             </div>
           </div>
+
+          {actionError ? (
+            <div className="form-alert form-alert--error">
+              <AlertCircle size={16} />
+              <span>{actionError}</span>
+            </div>
+          ) : null}
 
           <div className="compare-form-grid">
             <div className="compare-pickers">

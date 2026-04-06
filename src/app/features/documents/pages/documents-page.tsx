@@ -10,6 +10,7 @@ import {
   getDocumentTypeLabel,
 } from "@/app/lib/document";
 import {
+  AlertCircle,
   ArrowRight,
   Clock3,
   FileText,
@@ -55,6 +56,87 @@ function isProcessingStatus(status: number | string | undefined) {
   return value === "Pending" || value === "Processing";
 }
 
+function getApiErrorMessage(error: unknown, fallback: string) {
+  if (!error) {
+    return fallback;
+  }
+
+  if (typeof error === "string" && error.trim()) {
+    return error;
+  }
+
+  if (typeof error !== "object") {
+    return fallback;
+  }
+
+  const anyError = error as {
+    response?: {
+      data?: unknown;
+      status?: number;
+      statusText?: string;
+    };
+    data?: unknown;
+    message?: string;
+    error?: string;
+  };
+
+  const responseData = anyError.response?.data;
+  const directData = anyError.data;
+
+  const candidates: unknown[] = [
+    responseData,
+    directData,
+    anyError.error,
+    anyError.message,
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+
+    if (typeof candidate === "string" && candidate.trim()) {
+      if (
+        candidate === "Request failed with status code 429" &&
+        anyError.response?.status === 429
+      ) {
+        return fallback;
+      }
+
+      return candidate;
+    }
+
+    if (typeof candidate === "object") {
+      const record = candidate as Record<string, unknown>;
+
+      const nestedMessage =
+        record.message ??
+        record.error ??
+        record.title ??
+        record.detail ??
+        record.errors;
+
+      if (typeof nestedMessage === "string" && nestedMessage.trim()) {
+        return nestedMessage;
+      }
+
+      if (Array.isArray(nestedMessage) && nestedMessage.length > 0) {
+        const firstText = nestedMessage.find(
+          (item) => typeof item === "string" && item.trim(),
+        );
+
+        if (typeof firstText === "string") {
+          return firstText;
+        }
+      }
+    }
+  }
+
+  if (anyError.response?.status === 429) {
+    return fallback;
+  }
+
+  return fallback;
+}
+
 export function DocumentsPage() {
   const { t } = useTranslation();
 
@@ -64,6 +146,7 @@ export function DocumentsPage() {
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [actionError, setActionError] = useState("");
 
   const pollingRef = useRef<number | null>(null);
 
@@ -75,6 +158,8 @@ export function DocumentsPage() {
     try {
       const data = await getDocuments();
       setDocuments(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
     } finally {
       if (showLoader) {
         setLoading(false);
@@ -124,6 +209,7 @@ export function DocumentsPage() {
 
   async function handleUpload(file: File) {
     setUploading(true);
+    setActionError("");
 
     try {
       await uploadDocument(file);
@@ -135,6 +221,9 @@ export function DocumentsPage() {
           void loadDocuments(false);
         }, STATUS_POLL_INTERVAL_MS);
       }
+    } catch (error) {
+      console.error("uploadDocument error:", error);
+      setActionError(getApiErrorMessage(error, t("limits.uploadReached")));
     } finally {
       setUploading(false);
     }
@@ -144,11 +233,14 @@ export function DocumentsPage() {
     if (!deleteId) return;
 
     setDeleteBusy(true);
+    setActionError("");
 
     try {
       await deleteDocument(deleteId);
       setDeleteId(null);
       await loadDocuments(false);
+    } catch (error) {
+      setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
     } finally {
       setDeleteBusy(false);
     }
@@ -185,6 +277,13 @@ export function DocumentsPage() {
 
           <h1>{t("documents.title")}</h1>
           <p>{t("documents.subtitle")}</p>
+
+          {actionError ? (
+            <div className="form-alert form-alert--error">
+              <AlertCircle size={16} />
+              <span>{actionError}</span>
+            </div>
+          ) : null}
 
           <label className="documents-upload">
             <input

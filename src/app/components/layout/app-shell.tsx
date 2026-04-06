@@ -7,7 +7,9 @@ import {
   LogOut,
   MessageSquareText,
   PanelLeft,
+  Shield,
   Sparkles,
+  UserCircle2,
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -19,10 +21,11 @@ export function AppShell() {
   const location = useLocation();
   const { t } = useTranslation();
   const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const navItems = useMemo(
-    () => [
+  const navItems = useMemo(() => {
+    const items = [
       {
         to: "/home",
         label: t("nav.home"),
@@ -49,14 +52,33 @@ export function AppShell() {
         icon: MessageSquareText,
         active: location.pathname.includes("/chat"),
       },
-    ],
-    [location.pathname, t],
-  );
+      {
+        to: "/account",
+        label: t("nav.account"),
+        icon: UserCircle2,
+        active: location.pathname.startsWith("/account"),
+      },
+    ];
+
+    if (user?.role === "Admin") {
+      items.push({
+        to: "/admin/users",
+        label: t("nav.adminUsers"),
+        icon: Shield,
+        active: location.pathname.startsWith("/admin/users"),
+      });
+    }
+
+    return items;
+  }, [location.pathname, t, user?.role]);
 
   const pageTitle = useMemo(() => {
     if (location.pathname === "/home") return t("nav.home");
     if (location.pathname.startsWith("/compare")) return t("nav.compare");
     if (location.pathname.includes("/chat")) return t("nav.chat");
+    if (location.pathname.startsWith("/account")) return t("nav.account");
+    if (location.pathname.startsWith("/admin/users"))
+      return t("nav.adminUsers");
     return t("nav.documents");
   }, [location.pathname, t]);
 
@@ -110,6 +132,20 @@ export function AppShell() {
         </nav>
 
         <div className="app-sidebar__bottom">
+          <div className="app-sidebar__user-card">
+            <div className="app-sidebar__user-avatar">
+              <UserCircle2 size={18} />
+            </div>
+
+            <div className="app-sidebar__user-info">
+              <strong>{user?.displayName || user?.email || "-"}</strong>
+              <span>
+                {user?.role || "-"}
+                {user?.authProvider ? ` • ${user.authProvider}` : ""}
+              </span>
+            </div>
+          </div>
+
           <div className="app-sidebar__lang">
             <p>{t("common.language")}</p>
             <LanguageSwitcher />

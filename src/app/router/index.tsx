@@ -1,6 +1,8 @@
 import { Navigate, createBrowserRouter } from "react-router-dom";
 import { AppShell } from "../components/layout/app-shell";
 import { ProtectedRoute } from "../components/layout/protected-route";
+import { AccountPage } from "../features/account/pages/account-page";
+import { AdminUsersPage } from "../features/admin/pages/admin-users-page";
 import { LoginPage } from "../features/auth/pages/login-page";
 import { RegisterPage } from "../features/auth/pages/register-page";
 import { DocumentChatPage } from "../features/chat/pages/document-chat-page";
@@ -29,25 +31,19 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
+      { path: "/home", element: <HomePage /> },
+      { path: "/documents", element: <DocumentsPage /> },
+      { path: "/documents/:id", element: <DocumentDetailsPage /> },
+      { path: "/documents/:id/chat", element: <DocumentChatPage /> },
+      { path: "/compare", element: <ComparePage /> },
+      { path: "/account", element: <AccountPage /> },
       {
-        path: "/home",
-        element: <HomePage />,
-      },
-      {
-        path: "/documents",
-        element: <DocumentsPage />,
-      },
-      {
-        path: "/documents/:id",
-        element: <DocumentDetailsPage />,
-      },
-      {
-        path: "/documents/:id/chat",
-        element: <DocumentChatPage />,
-      },
-      {
-        path: "/compare",
-        element: <ComparePage />,
+        path: "/admin/users",
+        element: (
+          <ProtectedRoute requireAdmin>
+            <AdminUsersPage />
+          </ProtectedRoute>
+        ),
       },
     ],
   },
