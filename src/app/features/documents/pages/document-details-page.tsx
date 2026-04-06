@@ -18,7 +18,6 @@ import i18n from "@/i18n";
 import {
   ArrowRight,
   Bot,
-  FileText,
   GitCompareArrows,
   Loader2,
   Sparkles,
@@ -28,6 +27,7 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import "../../../styles/document-details-page.css";
 
 type DocumentDto = {
   id: string;
@@ -59,11 +59,11 @@ function normalizeLanguage(language?: string) {
 function statusClass(status: number | string | undefined) {
   const value = getDocumentStatusLabel(status);
 
-  if (value === "Pending") return "status-pending";
-  if (value === "Processing") return "status-processing";
-  if (value === "Completed") return "status-completed";
-  if (value === "Ready") return "status-ready";
-  return "status-unknown";
+  if (value === "Pending") return "doc-status doc-status--pending";
+  if (value === "Processing") return "doc-status doc-status--processing";
+  if (value === "Completed") return "doc-status doc-status--completed";
+  if (value === "Ready") return "doc-status doc-status--ready";
+  return "doc-status doc-status--unknown";
 }
 
 export function DocumentDetailsPage() {
@@ -160,15 +160,15 @@ export function DocumentDetailsPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[420px] items-center justify-center rounded-[28px] surface-soft">
-        <Loader2 className="animate-spin" />
+      <div className="document-details-loading surface-card">
+        <Loader2 className="document-details-loading__spinner" />
       </div>
     );
   }
 
   if (!documentItem) {
     return (
-      <div className="rounded-[28px] surface-soft p-8">
+      <div className="document-details-empty surface-card">
         {t("details.notFound")}
       </div>
     );
@@ -177,129 +177,129 @@ export function DocumentDetailsPage() {
   const statusLabel = getDocumentStatusLabel(status);
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-        <div className="surface-elevated rounded-[28px] p-6 lg:p-8">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full surface-soft px-3 py-1 text-xs text-soft">
-            <Sparkles size={14} />
-            {t("details.overview")}
+    <div className="document-details-page">
+      <section className="document-details-hero surface-card">
+        <div className="document-details-hero__head">
+          <div>
+            <div className="document-details-hero__badge">
+              <Sparkles size={15} />
+              <span>{t("details.overview")}</span>
+            </div>
+
+            <h1>{getDocumentDisplayName(documentItem)}</h1>
+            <p>{t("details.subtitle")}</p>
           </div>
 
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="flex-1">
-              <h1 className="break-words text-3xl font-semibold tracking-tight lg:text-4xl">
-                {getDocumentDisplayName(documentItem)}
-              </h1>
-
-              <p className="mt-3 max-w-2xl text-soft">
-                {t("details.subtitle")}
-              </p>
-            </div>
-
-            <div
-              className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium ${statusClass(status)}`}
-            >
-              {t(`documents.status.${statusLabel.toLowerCase()}`, statusLabel)}
-            </div>
-          </div>
-
-          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <div className="min-w-0 rounded-2xl surface-soft p-4">
-              <p className="text-sm text-muted">{t("details.fileType")}</p>
-              <p className="mt-2 break-words text-sm font-medium">
-                {getDocumentTypeLabel(documentItem)}
-              </p>
-            </div>
-
-            <div className="min-w-0 rounded-2xl surface-soft p-4">
-              <p className="text-sm text-muted">{t("details.mimeType")}</p>
-              <p className="mt-2 break-all text-sm font-medium">
-                {getDocumentMimeValue(documentItem)}
-              </p>
-            </div>
-
-            <div className="min-w-0 rounded-2xl surface-soft p-4">
-              <p className="text-sm text-muted">{t("details.size")}</p>
-              <p className="mt-2 text-sm font-medium">
-                {getDocumentSizeLabel(documentItem)}
-              </p>
-            </div>
-
-            <div className="min-w-0 rounded-2xl surface-soft p-4">
-              <p className="text-sm text-muted">{t("details.documentId")}</p>
-              <p className="mt-2 break-all text-sm font-medium">
-                {documentItem.id}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => void handleSummarize()}
-              className="primary-button inline-flex items-center gap-2 rounded-2xl px-4 py-3 font-medium transition"
-            >
-              <WandSparkles size={18} />
-              {summaryLoading
-                ? t("details.generating")
-                : t("details.generateSummary")}
-            </button>
-
-            <Link
-              to={`/documents/${documentItem.id}/chat`}
-              className="inline-flex items-center gap-2 rounded-2xl surface-soft px-4 py-3 font-medium transition hover:bg-[var(--panel-strong)]"
-            >
-              <Bot size={18} />
-              {t("details.openChat")}
-            </Link>
-
-            <Link
-              to="/compare"
-              className="inline-flex items-center gap-2 rounded-2xl surface-soft px-4 py-3 font-medium transition hover:bg-[var(--panel-strong)]"
-            >
-              <GitCompareArrows size={18} />
-              {t("details.compare")}
-            </Link>
-
-            <button
-              type="button"
-              onClick={() => setDeleteOpen(true)}
-              className="danger-button inline-flex items-center gap-2 rounded-2xl px-4 py-3 font-medium transition"
-            >
-              <Trash2 size={18} />
-              {t("documents.delete")}
-            </button>
+          <div className={statusClass(status)}>
+            {t(`documents.status.${statusLabel.toLowerCase()}`, statusLabel)}
           </div>
         </div>
 
-        <div className="surface-elevated rounded-[28px] p-6 lg:p-8">
-          <h2 className="text-xl font-semibold">{t("details.extraction")}</h2>
-          <p className="mt-2 text-sm text-soft">
-            {t("details.extractionSubtitle")}
-          </p>
+        <div className="document-details-metrics">
+          <div className="document-metric-card">
+            <p>{t("details.fileType")}</p>
+            <h3>{getDocumentTypeLabel(documentItem)}</h3>
+          </div>
 
-          <div className="mt-6 space-y-4">
+          <div className="document-metric-card">
+            <p>{t("details.mimeType")}</p>
+            <h3 className="document-metric-card__break">
+              {getDocumentMimeValue(documentItem)}
+            </h3>
+          </div>
+
+          <div className="document-metric-card">
+            <p>{t("details.size")}</p>
+            <h3>{getDocumentSizeLabel(documentItem)}</h3>
+          </div>
+
+          <div className="document-metric-card">
+            <p>{t("details.documentId")}</p>
+            <h3 className="document-metric-card__break">{documentItem.id}</h3>
+          </div>
+        </div>
+
+        <div className="document-details-actions">
+          <button
+            type="button"
+            onClick={() => void handleSummarize()}
+            className="detail-action detail-action--primary"
+          >
+            <WandSparkles size={18} />
+            <span>
+              {summaryLoading
+                ? t("details.generating")
+                : t("details.generateSummary")}
+            </span>
+          </button>
+
+          <Link
+            to={`/documents/${documentItem.id}/chat`}
+            className="detail-action"
+          >
+            <Bot size={18} />
+            <span>{t("details.openChat")}</span>
+          </Link>
+
+          <Link to="/compare" className="detail-action">
+            <GitCompareArrows size={18} />
+            <span>{t("details.compare")}</span>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setDeleteOpen(true)}
+            className="detail-action detail-action--danger"
+          >
+            <Trash2 size={18} />
+            <span>{t("documents.delete")}</span>
+          </button>
+        </div>
+      </section>
+
+      <section className="document-details-grid">
+        <div className="document-panel surface-card">
+          <div className="document-panel__header">
             <div>
-              <label className="mb-2 block text-sm text-muted">
-                {t("details.extractionType")}
-              </label>
+              <p className="section-kicker">{t("details.summaryKicker")}</p>
+              <h2>{t("details.summary")}</h2>
+            </div>
+          </div>
+
+          {summary ? (
+            <div className="document-summary-box">{summary}</div>
+          ) : (
+            <div className="document-empty-box">{t("details.noSummary")}</div>
+          )}
+        </div>
+
+        <div className="document-panel surface-card">
+          <div className="document-panel__header">
+            <div>
+              <p className="section-kicker">{t("details.extractionKicker")}</p>
+              <h2>{t("details.extraction")}</h2>
+              <p className="document-panel__sub">
+                {t("details.extractionSubtitle")}
+              </p>
+            </div>
+          </div>
+
+          <div className="document-form-grid">
+            <div className="document-field">
+              <label>{t("details.extractionType")}</label>
               <input
                 value={extractType}
                 onChange={(e) => setExtractType(e.target.value)}
-                className="w-full rounded-2xl border border-[var(--border)] bg-[var(--panel-soft)] px-4 py-3 outline-none"
                 placeholder="structured"
               />
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm text-muted">
-                {t("details.fields")}
-              </label>
+            <div className="document-field">
+              <label>{t("details.fields")}</label>
               <textarea
                 value={extractFields}
                 onChange={(e) => setExtractFields(e.target.value)}
-                rows={4}
-                className="w-full rounded-2xl border border-[var(--border)] bg-[var(--panel-soft)] px-4 py-3 outline-none"
+                rows={5}
                 placeholder="name,email,skills"
               />
             </div>
@@ -307,71 +307,52 @@ export function DocumentDetailsPage() {
             <button
               type="button"
               onClick={() => void handleExtract()}
-              className="w-full rounded-2xl surface-soft px-4 py-3 font-medium transition hover:bg-[var(--panel-strong)]"
+              className="detail-action detail-action--full"
             >
-              {extractLoading
-                ? t("details.extracting")
-                : t("details.runExtraction")}
+              <ArrowRight size={18} />
+              <span>
+                {extractLoading
+                  ? t("details.extracting")
+                  : t("details.runExtraction")}
+              </span>
             </button>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1fr_0.95fr]">
-        <div className="surface-elevated rounded-[28px] p-6 lg:p-8">
-          <div className="mb-4 flex items-center gap-2">
-            <FileText size={18} />
-            <h2 className="text-xl font-semibold">{t("details.summary")}</h2>
+      <section className="document-history surface-card">
+        <div className="document-panel__header">
+          <div>
+            <p className="section-kicker">{t("details.historyKicker")}</p>
+            <h2>{t("details.extractionHistory")}</h2>
           </div>
-
-          {summary ? (
-            <div className="rounded-2xl bg-[var(--panel-soft)] p-5 whitespace-pre-wrap break-words text-soft">
-              {summary}
-            </div>
-          ) : (
-            <div className="rounded-2xl bg-[var(--panel-soft)] p-5 text-soft">
-              {t("details.noSummary")}
-            </div>
-          )}
         </div>
 
-        <div className="surface-elevated rounded-[28px] p-6 lg:p-8">
-          <div className="mb-4 flex items-center gap-2">
-            <ArrowRight size={18} />
-            <h2 className="text-xl font-semibold">
-              {t("details.extractionHistory")}
-            </h2>
-          </div>
-
-          <div className="space-y-3">
-            {extractions.length === 0 ? (
-              <div className="rounded-2xl bg-[var(--panel-soft)] p-5 text-soft">
-                {t("details.noExtractions")}
-              </div>
-            ) : (
-              extractions.map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-2xl bg-[var(--panel-soft)] p-4"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-medium">
+        <div className="document-history__list">
+          {extractions.length === 0 ? (
+            <div className="document-empty-box">
+              {t("details.noExtractions")}
+            </div>
+          ) : (
+            extractions.map((item) => (
+              <article key={item.id} className="history-card">
+                <div className="history-card__top">
+                  <div>
+                    <h3>
                       {item.extractionType ?? t("details.extractionItem")}
-                    </p>
-                    <span className="break-all text-xs text-muted">
-                      {item.id}
-                    </span>
+                    </h3>
+                    <p>{item.createdAt ?? t("details.extractionItem")}</p>
                   </div>
 
-                  {item.resultJson ? (
-                    <pre className="mt-3 overflow-auto rounded-xl bg-black/20 p-3 text-xs whitespace-pre-wrap break-words text-soft">
-                      {item.resultJson}
-                    </pre>
-                  ) : null}
+                  <span>{item.id}</span>
                 </div>
-              ))
-            )}
-          </div>
+
+                {item.resultJson ? (
+                  <pre className="history-card__result">{item.resultJson}</pre>
+                ) : null}
+              </article>
+            ))
+          )}
         </div>
       </section>
 

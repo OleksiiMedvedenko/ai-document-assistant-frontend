@@ -1,8 +1,16 @@
 import { compareDocuments, getDocuments } from "@/app/api/documents.api";
 import { getDocumentDisplayName } from "@/app/lib/document";
-import { GitCompareArrows, Loader2, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  FileText,
+  GitCompareArrows,
+  Loader2,
+  Sparkles,
+  WandSparkles,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import "../../../styles/compare-page.css";
 
 type DocumentItem = {
   id: string;
@@ -25,6 +33,7 @@ function mapLanguageToApi(language?: string) {
 export function ComparePage() {
   const { t, i18n } = useTranslation();
   const apiLanguage = mapLanguageToApi(i18n.resolvedLanguage ?? i18n.language);
+
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [firstDocumentId, setFirstDocumentId] = useState("");
   const [secondDocumentId, setSecondDocumentId] = useState("");
@@ -72,6 +81,18 @@ export function ComparePage() {
     );
   }, [firstDocumentId, secondDocumentId, comparing]);
 
+  const firstDocName =
+    documents.find((doc) => doc.id === firstDocumentId) &&
+    getDocumentDisplayName(
+      documents.find((doc) => doc.id === firstDocumentId)!,
+    );
+
+  const secondDocName =
+    documents.find((doc) => doc.id === secondDocumentId) &&
+    getDocumentDisplayName(
+      documents.find((doc) => doc.id === secondDocumentId)!,
+    );
+
   async function handleCompare() {
     if (!firstDocumentId || !secondDocumentId) return;
 
@@ -97,98 +118,122 @@ export function ComparePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="surface-elevated rounded-[28px] p-6 lg:p-8">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full surface-soft px-3 py-1 text-xs text-soft">
-          <Sparkles size={14} />
-          {t("compare.badge")}
-        </div>
-
-        <h1 className="text-3xl font-semibold tracking-tight lg:text-4xl">
-          {t("compare.title")}
-        </h1>
-
-        <p className="mt-3 max-w-2xl text-soft">{t("compare.subtitle")}</p>
-
-        <div className="mt-8 grid gap-4 lg:grid-cols-2">
-          <div>
-            <label className="mb-2 block text-sm text-muted">
-              {t("compare.first")}
-            </label>
-            <select
-              value={firstDocumentId}
-              onChange={(e) => setFirstDocumentId(e.target.value)}
-              className="w-full rounded-2xl border border-[var(--border)] bg-[var(--panel-soft)] px-4 py-3 outline-none"
-            >
-              {documents.map((doc) => (
-                <option key={doc.id} value={doc.id}>
-                  {getDocumentDisplayName(doc)}
-                </option>
-              ))}
-            </select>
+    <div className="compare-page">
+      <section className="compare-hero surface-card">
+        <div className="compare-hero__intro">
+          <div className="compare-hero__badge">
+            <Sparkles size={15} />
+            <span>{t("compare.badge")}</span>
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm text-muted">
-              {t("compare.second")}
-            </label>
-            <select
-              value={secondDocumentId}
-              onChange={(e) => setSecondDocumentId(e.target.value)}
-              className="w-full rounded-2xl border border-[var(--border)] bg-[var(--panel-soft)] px-4 py-3 outline-none"
-            >
-              {documents.map((doc) => (
-                <option key={doc.id} value={doc.id}>
-                  {getDocumentDisplayName(doc)}
-                </option>
-              ))}
-            </select>
+          <h1>{t("compare.title")}</h1>
+          <p>{t("compare.subtitle")}</p>
+        </div>
+
+        <div className="compare-hero__preview">
+          <div className="compare-preview-card">
+            <div className="compare-preview-card__item">
+              <FileText size={18} />
+              <span>{firstDocName || t("compare.first")}</span>
+            </div>
+
+            <div className="compare-preview-card__middle">
+              <GitCompareArrows size={18} />
+            </div>
+
+            <div className="compare-preview-card__item">
+              <FileText size={18} />
+              <span>{secondDocName || t("compare.second")}</span>
+            </div>
           </div>
         </div>
-
-        <div className="mt-4">
-          <label className="mb-2 block text-sm text-muted">
-            {t("compare.prompt")}
-          </label>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            rows={5}
-            className="w-full rounded-2xl border border-[var(--border)] bg-[var(--panel-soft)] px-4 py-3 outline-none"
-          />
-        </div>
-
-        <button
-          type="button"
-          onClick={() => void handleCompare()}
-          disabled={compareDisabled}
-          className="primary-button mt-6 inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {comparing ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : (
-            <GitCompareArrows size={18} />
-          )}
-          {comparing ? t("compare.running") : t("compare.run")}
-        </button>
       </section>
 
-      <section className="surface-elevated rounded-[28px] p-6 lg:p-8">
-        <h2 className="text-xl font-semibold">{t("compare.result")}</h2>
+      <section className="compare-layout">
+        <div className="compare-panel surface-card">
+          <div className="compare-panel__header">
+            <div>
+              <p className="section-kicker">{t("compare.setupKicker")}</p>
+              <h2>{t("compare.setupTitle")}</h2>
+            </div>
+          </div>
 
-        {loading ? (
-          <div className="mt-4 rounded-2xl bg-[var(--panel-soft)] p-6 text-soft">
-            {t("common.loading")}
+          <div className="compare-form-grid">
+            <div className="compare-field">
+              <label>{t("compare.first")}</label>
+              <select
+                value={firstDocumentId}
+                onChange={(e) => setFirstDocumentId(e.target.value)}
+              >
+                {documents.map((doc) => (
+                  <option key={doc.id} value={doc.id}>
+                    {getDocumentDisplayName(doc)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="compare-field">
+              <label>{t("compare.second")}</label>
+              <select
+                value={secondDocumentId}
+                onChange={(e) => setSecondDocumentId(e.target.value)}
+              >
+                {documents.map((doc) => (
+                  <option key={doc.id} value={doc.id}>
+                    {getDocumentDisplayName(doc)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="compare-field compare-field--full">
+              <label>{t("compare.prompt")}</label>
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                rows={6}
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void handleCompare()}
+              disabled={compareDisabled}
+              className="compare-run-button"
+            >
+              {comparing ? (
+                <Loader2 size={18} className="spin" />
+              ) : (
+                <WandSparkles size={18} />
+              )}
+              <span>{comparing ? t("compare.running") : t("compare.run")}</span>
+            </button>
           </div>
-        ) : result ? (
-          <div className="mt-4 rounded-2xl bg-[var(--panel-soft)] p-6 whitespace-pre-wrap break-words text-soft">
-            {result}
+        </div>
+
+        <div className="compare-panel surface-card">
+          <div className="compare-panel__header">
+            <div>
+              <p className="section-kicker">{t("compare.resultKicker")}</p>
+              <h2>{t("compare.result")}</h2>
+            </div>
           </div>
-        ) : (
-          <div className="mt-4 rounded-2xl bg-[var(--panel-soft)] p-6 text-soft">
-            {t("compare.empty")}
-          </div>
-        )}
+
+          {loading ? (
+            <div className="compare-empty">
+              <Loader2 size={18} className="spin" />
+              <span>{t("common.loading")}</span>
+            </div>
+          ) : result ? (
+            <div className="compare-result-box">{result}</div>
+          ) : (
+            <div className="compare-empty">
+              <ArrowRight size={18} />
+              <span>{t("compare.empty")}</span>
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );

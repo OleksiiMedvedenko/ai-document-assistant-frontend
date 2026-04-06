@@ -1,3 +1,6 @@
+import { AlertTriangle, Loader2, Trash2, X } from "lucide-react";
+import "../../styles/delete-confirm-modal.css";
+
 type DeleteConfirmModalProps = {
   open: boolean;
   title: string;
@@ -22,16 +25,48 @@ export function DeleteConfirmModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
-      <div className="app-shell-card w-full max-w-md rounded-[28px] p-6">
-        <h3 className="text-xl font-semibold">{title}</h3>
-        <p className="mt-3 text-soft">{description}</p>
+    <div
+      className="delete-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-modal-title"
+      aria-describedby="delete-modal-description"
+    >
+      <button
+        type="button"
+        className="delete-modal__backdrop"
+        onClick={onCancel}
+        aria-label={cancelLabel}
+        disabled={busy}
+      />
 
-        <div className="mt-6 flex gap-3">
+      <div className="delete-modal__card surface-card">
+        <div className="delete-modal__top">
+          <div className="delete-modal__icon">
+            <AlertTriangle size={22} />
+          </div>
+
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 rounded-2xl surface-soft px-4 py-3 font-medium transition hover:bg-[var(--panel-strong)]"
+            className="delete-modal__close"
+            aria-label={cancelLabel}
+            disabled={busy}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="delete-modal__content">
+          <h3 id="delete-modal-title">{title}</h3>
+          <p id="delete-modal-description">{description}</p>
+        </div>
+
+        <div className="delete-modal__actions">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="delete-modal__button delete-modal__button--secondary"
             disabled={busy}
           >
             {cancelLabel}
@@ -40,10 +75,20 @@ export function DeleteConfirmModal({
           <button
             type="button"
             onClick={onConfirm}
-            className="flex-1 rounded-2xl danger-button px-4 py-3 font-medium transition hover:opacity-90"
+            className="delete-modal__button delete-modal__button--danger"
             disabled={busy}
           >
-            {busy ? "..." : confirmLabel}
+            {busy ? (
+              <>
+                <Loader2 size={16} className="delete-modal__spinner" />
+                <span>...</span>
+              </>
+            ) : (
+              <>
+                <Trash2 size={16} />
+                <span>{confirmLabel}</span>
+              </>
+            )}
           </button>
         </div>
       </div>

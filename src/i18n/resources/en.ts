@@ -48,6 +48,8 @@ export const en = {
       ready: "Ready",
       unknown: "Unknown",
     },
+    processingNow: "Processing now",
+    libraryKicker: "Document space",
   },
   details: {
     overview: "Document overview",
@@ -73,6 +75,9 @@ export const en = {
     noExtractions: "No extractions yet.",
     extractionItem: "Extraction",
     notFound: "Document not found.",
+    summaryKicker: "AI summary",
+    extractionKicker: "Structured extraction",
+    historyKicker: "Previous runs",
   },
   chat: {
     title: "AI conversation",
@@ -89,6 +94,7 @@ export const en = {
       "Ask about the document, request a summary, find facts, risks or differences...",
     you: "You",
     assistant: "Assistant",
+    headerKicker: "Document conversation",
   },
   compare: {
     badge: "AI comparison workspace",
@@ -104,6 +110,9 @@ export const en = {
     running: "Comparing...",
     result: "Comparison result",
     empty: "Choose two documents and run the comparison.",
+    setupKicker: "Compare setup",
+    setupTitle: "Choose documents and prompt",
+    resultKicker: "AI comparison",
   },
   deleteModal: {
     title: "Delete document",

@@ -50,6 +50,8 @@ export const pl = {
       ready: "Gotowy",
       unknown: "Nieznany",
     },
+    processingNow: "W trakcie przetwarzania",
+    libraryKicker: "Przestrzeń dokumentów",
   },
   details: {
     overview: "Przegląd dokumentu",
@@ -75,6 +77,9 @@ export const pl = {
     noExtractions: "Brak ekstrakcji.",
     extractionItem: "Ekstrakcja",
     notFound: "Nie znaleziono dokumentu.",
+    summaryKicker: "Streszczenie AI",
+    extractionKicker: "Ekstrakcja strukturalna",
+    historyKicker: "Poprzednie uruchomienia",
   },
   chat: {
     title: "Rozmowa AI",
@@ -90,6 +95,7 @@ export const pl = {
       "Zapytaj o dokument, poproś o streszczenie, znajdź fakty, ryzyka albo różnice...",
     you: "Ty",
     assistant: "Asystent",
+    headerKicker: "Rozmowa z dokumentem",
   },
   compare: {
     badge: "Przestrzeń porównań AI",
@@ -105,6 +111,9 @@ export const pl = {
     running: "Porównywanie...",
     result: "Wynik porównania",
     empty: "Wybierz dwa dokumenty i uruchom porównanie.",
+    setupKicker: "Konfiguracja porównania",
+    setupTitle: "Wybierz dokumenty i prompt",
+    resultKicker: "Porównanie AI",
   },
   deleteModal: {
     title: "Usuń dokument",

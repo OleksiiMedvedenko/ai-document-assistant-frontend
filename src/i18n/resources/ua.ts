@@ -50,6 +50,8 @@ export const ua = {
       ready: "Готово",
       unknown: "Невідомо",
     },
+    processingNow: "Зараз обробляється",
+    libraryKicker: "Простір документів",
   },
   details: {
     overview: "Огляд документа",
@@ -75,6 +77,9 @@ export const ua = {
     noExtractions: "Витягнень ще немає.",
     extractionItem: "Витягнення",
     notFound: "Документ не знайдено.",
+    summaryKicker: "AI-підсумок",
+    extractionKicker: "Структуроване витягнення",
+    historyKicker: "Попередні запуски",
   },
   chat: {
     title: "AI розмова",
@@ -90,6 +95,7 @@ export const ua = {
       "Запитайте про документ, попросіть підсумок, знайдіть факти, ризики або відмінності...",
     you: "Ви",
     assistant: "Асистент",
+    headerKicker: "Розмова з документом",
   },
   compare: {
     badge: "AI простір порівняння",
@@ -105,6 +111,9 @@ export const ua = {
     running: "Порівняння...",
     result: "Результат порівняння",
     empty: "Виберіть два документи та запустіть порівняння.",
+    setupKicker: "Налаштування порівняння",
+    setupTitle: "Виберіть документи та prompt",
+    resultKicker: "AI-порівняння",
   },
   deleteModal: {
     title: "Видалити документ",

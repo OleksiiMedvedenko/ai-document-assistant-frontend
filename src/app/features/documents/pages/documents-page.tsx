@@ -10,18 +10,22 @@ import {
   getDocumentTypeLabel,
 } from "@/app/lib/document";
 import {
+  ArrowRight,
   Clock3,
   FileText,
   FileUp,
+  GitCompareArrows,
   MessageSquareText,
   Search,
   Sparkles,
   Trash2,
+  UploadCloud,
   WandSparkles,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import "../../../styles/documents-page.css";
 
 type DocumentItem = {
   id: string;
@@ -37,11 +41,11 @@ type DocumentItem = {
 function statusClass(status: number | string | undefined) {
   const value = getDocumentStatusLabel(status);
 
-  if (value === "Pending") return "status-pending";
-  if (value === "Processing") return "status-processing";
-  if (value === "Completed") return "status-completed";
-  if (value === "Ready") return "status-ready";
-  return "status-unknown";
+  if (value === "Pending") return "doc-status doc-status--pending";
+  if (value === "Processing") return "doc-status doc-status--processing";
+  if (value === "Completed") return "doc-status doc-status--completed";
+  if (value === "Ready") return "doc-status doc-status--ready";
+  return "doc-status doc-status--unknown";
 }
 
 export function DocumentsPage() {
@@ -107,183 +111,174 @@ export function DocumentsPage() {
     return value === "Completed" || value === "Ready";
   }).length;
 
+  const processingCount = documents.filter((doc) => {
+    const value = getDocumentStatusLabel(doc.status);
+    return value === "Pending" || value === "Processing";
+  }).length;
+
   return (
-    <div className="space-y-8">
-      <section className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
-        <div className="surface-elevated rounded-[28px] p-6 lg:p-8">
-          <div className="inline-flex items-center gap-2 rounded-full surface-soft px-3 py-1 text-xs text-soft">
-            <Sparkles size={14} />
-            {t("documents.heroBadge")}
+    <div className="documents-page">
+      <section className="documents-hero surface-card">
+        <div className="documents-hero__content">
+          <div className="documents-hero__badge">
+            <Sparkles size={15} />
+            <span>{t("documents.heroBadge")}</span>
           </div>
 
-          <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-tight lg:text-5xl">
-            {t("documents.title")}
-          </h1>
+          <h1>{t("documents.title")}</h1>
+          <p>{t("documents.subtitle")}</p>
 
-          <p className="mt-4 max-w-2xl text-base leading-7 text-soft">
-            {t("documents.subtitle")}
-          </p>
-
-          <label className="mt-8 block cursor-pointer rounded-[24px] border border-dashed border-[var(--border)] bg-[var(--panel-soft)] p-8 transition hover:bg-[var(--panel-strong)]">
+          <label className="documents-upload">
             <input
               type="file"
-              className="hidden"
+              className="documents-upload__input"
               onChange={(event) => {
                 const file = event.target.files?.[0];
                 if (file) void handleUpload(file);
               }}
             />
 
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className="mb-4 rounded-2xl surface-soft p-4">
-                <FileUp size={28} />
-              </div>
+            <div className="documents-upload__icon">
+              {uploading ? <FileUp size={24} /> : <UploadCloud size={24} />}
+            </div>
 
-              <h3 className="text-xl font-semibold">
+            <div className="documents-upload__content">
+              <strong>
                 {uploading
                   ? t("documents.uploading")
                   : t("documents.uploadTitle")}
-              </h3>
-
-              <p className="mt-2 text-sm text-soft">
-                {t("documents.uploadSubtitle")}
-              </p>
+              </strong>
+              <span>{t("documents.uploadSubtitle")}</span>
             </div>
           </label>
         </div>
 
-        <div className="surface-elevated rounded-[28px] p-6 lg:p-8">
-          <p className="text-sm text-soft">{t("documents.quickStats")}</p>
+        <div className="documents-hero__stats">
+          <div className="documents-stat-card">
+            <p>{t("documents.totalDocuments")}</p>
+            <h3>{documents.length}</h3>
+          </div>
 
-          <div className="mt-6 grid gap-4">
-            <div className="rounded-2xl surface-soft p-4">
-              <p className="text-sm text-muted">
-                {t("documents.totalDocuments")}
-              </p>
-              <p className="mt-2 text-3xl font-semibold">{documents.length}</p>
-            </div>
+          <div className="documents-stat-card">
+            <p>{t("documents.aiReady")}</p>
+            <h3>{aiReadyCount}</h3>
+          </div>
 
-            <div className="rounded-2xl surface-soft p-4">
-              <p className="text-sm text-muted">{t("documents.aiReady")}</p>
-              <p className="mt-2 text-3xl font-semibold">{aiReadyCount}</p>
-            </div>
+          <div className="documents-stat-card">
+            <p>{t("documents.processingNow")}</p>
+            <h3>{processingCount}</h3>
           </div>
         </div>
       </section>
 
-      <section>
-        <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <section className="documents-library surface-card">
+        <div className="documents-library__header">
           <div>
-            <h2 className="text-2xl font-semibold">
-              {t("documents.libraryTitle")}
-            </h2>
-            <p className="mt-1 text-sm text-soft">
+            <p className="section-kicker">{t("documents.libraryKicker")}</p>
+            <h2>{t("documents.libraryTitle")}</h2>
+            <p className="documents-library__subtitle">
               {t("documents.librarySubtitle")}
             </p>
           </div>
 
-          <div className="relative w-full max-w-md">
-            <Search
-              size={18}
-              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted"
-            />
+          <div className="documents-search">
+            <Search size={18} />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder={t("documents.searchPlaceholder")}
-              className="w-full rounded-2xl border border-[var(--border)] bg-[var(--panel-soft)] py-3 pl-11 pr-4 outline-none"
             />
           </div>
         </div>
 
         {loading ? (
-          <div className="rounded-[28px] surface-soft p-10 text-center text-soft">
-            {t("common.loading")}
+          <div className="documents-empty">
+            <div className="documents-empty__icon">
+              <FileText size={22} />
+            </div>
+            <h3>{t("common.loading")}</h3>
           </div>
         ) : filteredDocuments.length === 0 ? (
-          <div className="rounded-[28px] surface-soft p-10 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl surface-soft">
-              <FileText size={24} />
+          <div className="documents-empty">
+            <div className="documents-empty__icon">
+              <FileText size={22} />
             </div>
-            <h3 className="text-xl font-semibold">
-              {t("documents.emptyTitle")}
-            </h3>
-            <p className="mt-2 text-soft">{t("documents.emptySubtitle")}</p>
+            <h3>{t("documents.emptyTitle")}</h3>
+            <p>{t("documents.emptySubtitle")}</p>
           </div>
         ) : (
-          <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
+          <div className="documents-grid">
             {filteredDocuments.map((doc) => {
               const statusLabel = getDocumentStatusLabel(doc.status);
 
               return (
-                <Link
-                  key={doc.id}
-                  to={`/documents/${doc.id}`}
-                  className="group rounded-[24px] surface-elevated p-5 transition hover:-translate-y-1 hover:bg-[var(--panel-strong)]"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl surface-soft">
-                      <FileText size={22} />
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${statusClass(doc.status)}`}
-                      >
-                        {t(
-                          `documents.status.${statusLabel.toLowerCase()}`,
-                          statusLabel,
-                        )}
+                <article key={doc.id} className="document-card">
+                  <div className="document-card__top">
+                    <div className="document-card__file">
+                      <div className="document-card__file-icon">
+                        <FileText size={20} />
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          setDeleteId(doc.id);
-                        }}
-                        className="rounded-xl surface-soft p-2 text-soft transition hover:bg-red-500/15 hover:text-red-300"
-                        aria-label={t("documents.delete")}
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <div className="document-card__file-info">
+                        <h3>{getDocumentDisplayName(doc)}</h3>
+                        <p>{getDocumentTypeLabel(doc)}</p>
+                      </div>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setDeleteId(doc.id)}
+                      className="document-card__delete"
+                      aria-label={t("documents.delete")}
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
 
-                  <div className="mt-5">
-                    <h3 className="line-clamp-2 break-words text-lg font-semibold">
-                      {getDocumentDisplayName(doc)}
-                    </h3>
+                  <div className="document-card__meta">
+                    <span className={statusClass(doc.status)}>
+                      {t(
+                        `documents.status.${statusLabel.toLowerCase()}`,
+                        statusLabel,
+                      )}
+                    </span>
 
-                    <div className="mt-3 inline-flex max-w-full rounded-full surface-soft px-3 py-1 text-xs text-soft">
-                      <span className="truncate">
-                        {getDocumentTypeLabel(doc)}
-                      </span>
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-soft">
-                      <span className="inline-flex items-center gap-2">
-                        <Clock3 size={14} />
-                        {t("documents.readyForAi")}
-                      </span>
-
-                      <span className="inline-flex items-center gap-2">
-                        <WandSparkles size={14} />
-                        {t("documents.actions")}
-                      </span>
-                    </div>
+                    <span className="document-card__meta-chip">
+                      <Clock3 size={14} />
+                      {t("documents.readyForAi")}
+                    </span>
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between border-t border-[var(--border)] pt-4 text-sm text-soft">
-                    <span>{t("documents.openDetails")}</span>
+                  <div className="document-card__actions">
+                    <Link
+                      to={`/documents/${doc.id}`}
+                      className="document-card__action document-card__action--primary"
+                    >
+                      <ArrowRight size={16} />
+                      <span>{t("documents.openDetails")}</span>
+                    </Link>
 
-                    <div className="inline-flex items-center gap-2">
+                    <Link
+                      to={`/documents/${doc.id}/chat`}
+                      className="document-card__action"
+                    >
                       <MessageSquareText size={16} />
-                      <span className="hidden sm:inline">{t("nav.chat")}</span>
-                    </div>
+                      <span>{t("nav.chat")}</span>
+                    </Link>
+
+                    <Link to="/compare" className="document-card__action">
+                      <GitCompareArrows size={16} />
+                      <span>{t("nav.compare")}</span>
+                    </Link>
                   </div>
-                </Link>
+
+                  <div className="document-card__footer">
+                    <span>
+                      <WandSparkles size={14} />
+                      {t("documents.actions")}
+                    </span>
+                  </div>
+                </article>
               );
             })}
           </div>

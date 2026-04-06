@@ -5,8 +5,16 @@ import {
 } from "@/app/api/chats.api";
 import { getDocument } from "@/app/api/documents.api";
 import { getDocumentDisplayName } from "@/app/lib/document";
+import "@/app/styles/document-chat-page.css";
 import i18n from "@/i18n";
-import { Bot, Loader2, SendHorizonal, Sparkles, User2 } from "lucide-react";
+import {
+  Bot,
+  Loader2,
+  MessageSquareText,
+  SendHorizonal,
+  Sparkles,
+  User2,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
@@ -45,9 +53,7 @@ function normalizeLanguage(language?: string) {
 function normalizeRole(role: unknown): "user" | "assistant" {
   if (typeof role === "string") {
     const value = role.toLowerCase();
-    if (value === "user" || value === "human") {
-      return "user";
-    }
+    if (value === "user" || value === "human") return "user";
     if (value === "assistant" || value === "bot" || value === "system") {
       return "assistant";
     }
@@ -55,12 +61,8 @@ function normalizeRole(role: unknown): "user" | "assistant" {
   }
 
   if (typeof role === "number") {
-    if (role === 1) {
-      return "user";
-    }
-    if (role === 2 || role === 3) {
-      return "assistant";
-    }
+    if (role === 1) return "user";
+    if (role === 2 || role === 3) return "assistant";
     return "assistant";
   }
 
@@ -69,21 +71,15 @@ function normalizeRole(role: unknown): "user" | "assistant" {
 
     if (typeof nested === "string") {
       const value = nested.toLowerCase();
-      if (value === "user" || value === "human") {
-        return "user";
-      }
+      if (value === "user" || value === "human") return "user";
       if (value === "assistant" || value === "bot" || value === "system") {
         return "assistant";
       }
     }
 
     if (typeof nested === "number") {
-      if (nested === 1) {
-        return "user";
-      }
-      if (nested === 2 || nested === 3) {
-        return "assistant";
-      }
+      if (nested === 1) return "user";
+      if (nested === 2 || nested === 3) return "assistant";
     }
   }
 
@@ -149,7 +145,6 @@ export function DocumentChatPage() {
   const [loading, setLoading] = useState(true);
 
   const currentLanguage = normalizeLanguage(i18n.language);
-
   const endRef = useRef<HTMLDivElement | null>(null);
 
   const canSend = useMemo(() => prompt.trim().length > 0 && !!id, [prompt, id]);
@@ -249,28 +244,21 @@ export function DocumentChatPage() {
   }
 
   return (
-    <div className="grid min-h-[720px] gap-6 xl:grid-cols-[320px_1fr]">
-      <aside className="surface-elevated rounded-[28px] p-5">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full surface-soft px-3 py-1 text-xs text-soft">
+    <div className="document-chat-page">
+      <aside className="chat-sidebar surface-card">
+        <div className="chat-sidebar__badge">
           <Sparkles size={14} />
-          {t("chat.sessions")}
+          <span>{t("chat.sessions")}</span>
         </div>
 
-        <h1 className="break-words text-2xl font-semibold">
-          {getDocumentDisplayName(documentItem)}
-        </h1>
+        <h1>{getDocumentDisplayName(documentItem)}</h1>
+        <p>{t("chat.subtitle")}</p>
 
-        <p className="mt-2 text-sm text-soft">{t("chat.subtitle")}</p>
-
-        <div className="mt-6 space-y-3">
+        <div className="chat-sessions">
           {loading ? (
-            <div className="rounded-2xl bg-[var(--panel-soft)] p-4 text-soft">
-              {t("common.loading")}
-            </div>
+            <div className="chat-empty-box">{t("common.loading")}</div>
           ) : sessions.length === 0 ? (
-            <div className="rounded-2xl bg-[var(--panel-soft)] p-4 text-soft">
-              {t("chat.noSessions")}
-            </div>
+            <div className="chat-empty-box">{t("chat.noSessions")}</div>
           ) : (
             sessions.map((session, index) => (
               <button
@@ -279,107 +267,105 @@ export function DocumentChatPage() {
                 onClick={() =>
                   session.id && void handleSelectSession(session.id)
                 }
-                className={[
-                  "w-full rounded-2xl border px-4 py-3 text-left transition",
+                className={`chat-session-card ${
                   activeSessionId === session.id
-                    ? "primary-button border-transparent"
-                    : "border-[var(--border)] bg-[var(--panel-soft)] hover:bg-[var(--panel-strong)]",
-                ].join(" ")}
+                    ? "chat-session-card--active"
+                    : ""
+                }`}
               >
-                <p className="font-medium">
-                  {session.title ??
-                    session.name ??
-                    `${t("chat.session")} ${index + 1}`}
-                </p>
-                <p className="mt-1 break-all text-xs opacity-80">
-                  {session.id}
-                </p>
+                <div className="chat-session-card__icon">
+                  <MessageSquareText size={16} />
+                </div>
+
+                <div className="chat-session-card__content">
+                  <strong>
+                    {session.title ??
+                      session.name ??
+                      `${t("chat.session")} ${index + 1}`}
+                  </strong>
+                  <span>{session.id}</span>
+                </div>
               </button>
             ))
           )}
         </div>
       </aside>
 
-      <section className="surface-elevated rounded-[28px] p-5 lg:p-6">
-        <div className="flex h-full flex-col">
-          <div className="mb-4 border-b border-[var(--border)] pb-4">
-            <h2 className="text-xl font-semibold">{t("chat.title")}</h2>
-            <p className="mt-1 text-sm text-soft">{t("chat.contextAware")}</p>
+      <section className="chat-panel surface-card">
+        <div className="chat-panel__header">
+          <div>
+            <p className="section-kicker">{t("chat.headerKicker")}</p>
+            <h2>{t("chat.title")}</h2>
+            <p>{t("chat.contextAware")}</p>
           </div>
+        </div>
 
-          <div className="flex-1 space-y-4 overflow-auto pr-1">
-            {messages.length === 0 ? (
-              <div className="flex min-h-[420px] items-center justify-center rounded-2xl bg-[var(--panel-soft)] text-soft">
-                {t("chat.empty")}
-              </div>
-            ) : (
-              messages.map((item, index) => {
-                const role = normalizeRole(item.role);
-                const isUser = role === "user";
-                const content = normalizeMessageContent(item);
+        <div className="chat-messages">
+          {messages.length === 0 ? (
+            <div className="chat-empty-state">{t("chat.empty")}</div>
+          ) : (
+            messages.map((item, index) => {
+              const role = normalizeRole(item.role);
+              const isUser = role === "user";
+              const content = normalizeMessageContent(item);
 
-                return (
+              return (
+                <div
+                  key={item.id ?? `${role}-${index}`}
+                  className={`chat-message-row ${
+                    isUser ? "chat-message-row--user" : ""
+                  }`}
+                >
                   <div
-                    key={item.id ?? `${role}-${index}`}
-                    className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+                    className={`chat-message ${
+                      isUser ? "chat-message--user" : "chat-message--assistant"
+                    }`}
                   >
-                    <div
-                      className={[
-                        "max-w-[82%] rounded-3xl px-4 py-4",
-                        isUser
-                          ? "primary-button"
-                          : "bg-[var(--panel-soft)] text-[var(--text)]",
-                      ].join(" ")}
-                    >
-                      <div className="mb-2 flex items-center gap-2 text-xs opacity-80">
-                        {isUser ? <User2 size={14} /> : <Bot size={14} />}
+                    <div className="chat-message__meta">
+                      {isUser ? <User2 size={14} /> : <Bot size={14} />}
+                      <span>
                         {isUser ? t("chat.you") : t("chat.assistant")}
-                      </div>
-
-                      <div className="whitespace-pre-wrap break-words leading-7">
-                        {content}
-                      </div>
+                      </span>
                     </div>
-                  </div>
-                );
-              })
-            )}
 
-            {sending ? (
-              <div className="flex justify-start">
-                <div className="rounded-3xl bg-[var(--panel-soft)] px-4 py-4 text-soft">
-                  <div className="flex items-center gap-2">
-                    <Loader2 size={16} className="animate-spin" />
-                    {t("chat.thinking")}
+                    <div className="chat-message__content">{content}</div>
                   </div>
                 </div>
+              );
+            })
+          )}
+
+          {sending ? (
+            <div className="chat-message-row">
+              <div className="chat-message chat-message--assistant">
+                <div className="chat-message__meta">
+                  <Loader2 size={14} className="spin" />
+                  <span>{t("chat.thinking")}</span>
+                </div>
               </div>
-            ) : null}
-
-            <div ref={endRef} />
-          </div>
-
-          <div className="mt-4 border-t border-[var(--border)] pt-4">
-            <div className="flex gap-3">
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                rows={3}
-                className="flex-1 rounded-2xl border border-[var(--border)] bg-[var(--panel-soft)] px-4 py-3 outline-none"
-                placeholder={t("chat.placeholder")}
-              />
-
-              <button
-                type="button"
-                onClick={() => void handleSend()}
-                disabled={!canSend || sending}
-                className="primary-button inline-flex items-center gap-2 self-end rounded-2xl px-5 py-3 font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <SendHorizonal size={18} />
-                {t("chat.send")}
-              </button>
             </div>
-          </div>
+          ) : null}
+
+          <div ref={endRef} />
+        </div>
+
+        <div className="chat-composer">
+          <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            rows={3}
+            placeholder={t("chat.placeholder")}
+          />
+
+          <button
+            type="button"
+            onClick={() => void handleSend()}
+            disabled={!canSend || sending}
+            className="chat-send-button"
+          >
+            <SendHorizonal size={18} />
+            <span>{t("chat.send")}</span>
+          </button>
         </div>
       </section>
     </div>
