@@ -108,4 +108,56 @@ export const en = {
     delete: "Delete",
     cancel: "Cancel",
   },
+  auth: {
+    loader: {
+      title: "Preparing your AI workspace",
+      subtitle: "Loading documents, preferences and your session...",
+    },
+    login: {
+      badge: "Next-gen document workflow",
+      title: "Welcome back 👋",
+      subtitle:
+        "Chat with files, compare versions and extract insights in a much cleaner workspace.",
+      featureChat: "Ask questions and continue previous AI conversations.",
+      featureCompare: "Compare documents and catch differences faster.",
+      featureExtract:
+        "Generate summaries and structured extraction in one flow.",
+      formTitle: "Sign in",
+      formSubtitle:
+        "Access your workspace and continue exactly where you left off.",
+      email: "Email",
+      emailPlaceholder: "name@company.com",
+      password: "Password",
+      passwordPlaceholder: "Enter your password",
+      submit: "Sign in",
+      signingIn: "Signing in...",
+      noAccount: "No account yet?",
+      createAccount: "Create one",
+      error: "Login failed. Please check your credentials and try again.",
+    },
+    register: {
+      badge: "Create your AI workspace",
+      title: "Create your account ✨",
+      subtitle:
+        "Start building your document analysis workspace in a cleaner and smarter interface.",
+      featureWorkspace: "Set up your personal AI workspace in seconds.",
+      featureFiles: "Upload, analyze and compare files in one place.",
+      featureFlow: "Move faster with summaries, extraction and chat.",
+      formTitle: "Create account",
+      formSubtitle:
+        "Join the workspace and start organizing your document flow.",
+      email: "Email",
+      emailPlaceholder: "name@company.com",
+      password: "Password",
+      passwordPlaceholder: "Create a strong password",
+      submit: "Create account",
+      creating: "Creating...",
+      haveAccount: "Already have an account?",
+      signIn: "Sign in",
+      error: "Registration failed. Please try again.",
+      loaderTitle: "Creating your account",
+      loaderSubtitle:
+        "Preparing your workspace and redirecting you to sign in...",
+    },
+  },
 };

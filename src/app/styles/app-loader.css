@@ -1,0 +1,113 @@
+.app-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+}
+
+.app-loader__backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, rgba(124, 92, 255, 0.22), transparent 30%),
+    radial-gradient(
+      circle at bottom,
+      rgba(79, 209, 255, 0.18),
+      transparent 30%
+    ),
+    rgba(4, 8, 18, 0.78);
+  backdrop-filter: blur(12px);
+}
+
+.app-loader__content {
+  position: relative;
+  display: grid;
+  gap: 24px;
+  justify-items: center;
+  width: min(92vw, 420px);
+  padding: 32px 24px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(11, 18, 32, 0.75);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.app-loader__text h3 {
+  margin: 0 0 8px;
+  text-align: center;
+  color: #f5f8ff;
+  font-size: 1.2rem;
+}
+
+.app-loader__text p {
+  margin: 0;
+  text-align: center;
+  color: #aebcdb;
+  line-height: 1.6;
+}
+
+.gusano {
+  position: relative;
+  width: 200px;
+  height: 44px;
+}
+
+.gusano__dot {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #7c5cff, #4fd1ff);
+  box-shadow:
+    0 0 0 4px rgba(124, 92, 255, 0.08),
+    0 10px 24px rgba(79, 209, 255, 0.2);
+  animation: gusano-wave 1.15s infinite ease-in-out;
+}
+
+.gusano__dot--1 {
+  left: 0;
+  animation-delay: 0s;
+}
+.gusano__dot--2 {
+  left: 24px;
+  animation-delay: 0.05s;
+}
+.gusano__dot--3 {
+  left: 48px;
+  animation-delay: 0.1s;
+}
+.gusano__dot--4 {
+  left: 72px;
+  animation-delay: 0.15s;
+}
+.gusano__dot--5 {
+  left: 96px;
+  animation-delay: 0.2s;
+}
+.gusano__dot--6 {
+  left: 120px;
+  animation-delay: 0.25s;
+}
+.gusano__dot--7 {
+  left: 144px;
+  animation-delay: 0.3s;
+}
+.gusano__dot--8 {
+  left: 168px;
+  animation-delay: 0.35s;
+}
+
+@keyframes gusano-wave {
+  0%,
+  100% {
+    transform: translateY(-50%) scale(0.88);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(-50%) translateY(-12px) scale(1.16);
+    opacity: 1;
+  }
+}

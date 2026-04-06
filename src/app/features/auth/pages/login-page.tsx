@@ -1,84 +1,237 @@
 import { login } from "@/app/api/auth.api";
+import { AppLoader } from "@/app/components/feedback/app-loader";
 import { LanguageSwitcher } from "@/app/components/layout/language-switcher";
 import { useAuthStore } from "@/app/store/auth.store";
-import { useState } from "react";
+import { LockKeyhole, Mail, Sparkles } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
+import "../../../styles/login-page.css";
+
+const MIN_SUCCESS_LOADER_MS = 1000;
+
+function wait(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+type BearState = "idle" | "email" | "password";
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessLoader, setShowSuccessLoader] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+
+  const bearState = useMemo<BearState>(() => {
+    if (isPasswordFocused) return "password";
+    if (isEmailFocused || email.length > 0) return "email";
+    return "idle";
+  }, [isPasswordFocused, isEmailFocused, email.length]);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (isSubmitting) return;
+
     setError("");
-    setLoading(true);
+    setIsSubmitting(true);
 
     try {
-      const result = await login({ email, password });
+      const [result] = await Promise.all([
+        login({ email, password }),
+        wait(250),
+      ]);
+
       setAuth(result);
+
+      setShowSuccessLoader(true);
+      await wait(MIN_SUCCESS_LOADER_MS);
+
       navigate("/documents");
     } catch {
-      setError("Login failed");
+      setError(t("auth.login.error"));
     } finally {
-      setLoading(false);
+      setShowSuccessLoader(false);
+      setIsSubmitting(false);
     }
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-950 px-4 text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(120,119,198,0.2),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.12),transparent_25%)]" />
+    <>
+      <AppLoader
+        visible={showSuccessLoader}
+        title={t("auth.loader.title")}
+        subtitle={t("auth.loader.subtitle")}
+      />
 
-      <div className="relative w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
-        <div className="mb-6 flex justify-end">
+      <div className="login-page">
+        <div className="login-page__glow login-page__glow--one" />
+        <div className="login-page__glow login-page__glow--two" />
+        <div className="login-page__noise" />
+
+        <div className="login-page__topbar">
+          <div className="login-page__badge">
+            <Sparkles size={16} />
+            <span>{t("auth.login.badge")}</span>
+          </div>
+
           <LanguageSwitcher />
         </div>
 
-        <p className="text-sm uppercase tracking-[0.25em] text-zinc-400">
-          AI Document Assistant
-        </p>
-        <h1 className="mt-3 text-4xl font-bold">Welcome back</h1>
-        <p className="mt-2 text-zinc-400">
-          Sign in and continue working with your documents.
-        </p>
+        <div className="login-card">
+          <section className="login-card__visual">
+            <div className="bear-card">
+              <div className={`bear bear--${bearState}`}>
+                <div className="bear__shadow" />
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-          <input
-            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 outline-none placeholder:text-zinc-500"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+                <div className="bear__ears">
+                  <span className="bear__ear bear__ear--left" />
+                  <span className="bear__ear bear__ear--right" />
+                </div>
 
-          <input
-            type="password"
-            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 outline-none placeholder:text-zinc-500"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+                <div className="bear__face">
+                  <div className="bear__brows">
+                    <span className="bear__brow bear__brow--left" />
+                    <span className="bear__brow bear__brow--right" />
+                  </div>
 
-          {error ? <p className="text-sm text-red-400">{error}</p> : null}
+                  <div className="bear__eyes">
+                    <span className="bear__eye bear__eye--left">
+                      <span className="bear__eye-core" />
+                      <span className="bear__eye-shine" />
+                    </span>
+                    <span className="bear__eye bear__eye--right">
+                      <span className="bear__eye-core" />
+                      <span className="bear__eye-shine" />
+                    </span>
+                  </div>
 
-          <button
-            disabled={loading}
-            className="w-full rounded-2xl bg-white px-4 py-3 font-semibold text-zinc-950 transition hover:scale-[1.01] disabled:opacity-70"
-          >
-            {loading ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
+                  <div className="bear__snout">
+                    <span className="bear__nose" />
+                    <span className="bear__mouth" />
+                  </div>
 
-        <p className="mt-6 text-sm text-zinc-400">
-          No account?{" "}
-          <Link to="/register" className="text-white underline">
-            Create one
-          </Link>
-        </p>
+                  <div className="bear__blush bear__blush--left" />
+                  <div className="bear__blush bear__blush--right" />
+                </div>
+
+                <div className="bear__paws">
+                  <span className="bear__paw bear__paw--left">
+                    <span className="bear__claw bear__claw--1" />
+                    <span className="bear__claw bear__claw--2" />
+                    <span className="bear__claw bear__claw--3" />
+                  </span>
+
+                  <span className="bear__paw bear__paw--right">
+                    <span className="bear__claw bear__claw--1" />
+                    <span className="bear__claw bear__claw--2" />
+                    <span className="bear__claw bear__claw--3" />
+                  </span>
+                </div>
+              </div>
+
+              <div className="bear-card__orbit bear-card__orbit--one">📄</div>
+              <div className="bear-card__orbit bear-card__orbit--two">✨</div>
+              <div className="bear-card__orbit bear-card__orbit--three">🤖</div>
+            </div>
+
+            <div className="login-card__copy">
+              <p className="login-card__eyebrow">{t("brand.workspace")}</p>
+              <h1>{t("auth.login.title")}</h1>
+              <p>{t("auth.login.subtitle")}</p>
+
+              <div className="login-card__feature-list">
+                <div className="login-card__feature">
+                  <span>💬</span>
+                  <p>{t("auth.login.featureChat")}</p>
+                </div>
+
+                <div className="login-card__feature">
+                  <span>📑</span>
+                  <p>{t("auth.login.featureCompare")}</p>
+                </div>
+
+                <div className="login-card__feature">
+                  <span>⚡</span>
+                  <p>{t("auth.login.featureExtract")}</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="login-card__form-side">
+            <div className="login-form__header">
+              <p className="login-form__brand">{t("brand.name")}</p>
+              <h2>{t("auth.login.formTitle")}</h2>
+              <p>{t("auth.login.formSubtitle")}</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="login-form" noValidate>
+              <label className="login-field">
+                <span className="login-field__label">
+                  {t("auth.login.email")}
+                </span>
+                <div className="login-field__control">
+                  <Mail size={18} />
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    placeholder={t("auth.login.emailPlaceholder")}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onFocus={() => setIsEmailFocused(true)}
+                    onBlur={() => setIsEmailFocused(false)}
+                  />
+                </div>
+              </label>
+
+              <label className="login-field">
+                <span className="login-field__label">
+                  {t("auth.login.password")}
+                </span>
+                <div className="login-field__control">
+                  <LockKeyhole size={18} />
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    placeholder={t("auth.login.passwordPlaceholder")}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onFocus={() => setIsPasswordFocused(true)}
+                    onBlur={() => setIsPasswordFocused(false)}
+                  />
+                </div>
+              </label>
+
+              {error ? <div className="login-form__error">{error}</div> : null}
+
+              <button
+                type="submit"
+                className="login-form__submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting
+                  ? t("auth.login.signingIn")
+                  : t("auth.login.submit")}
+              </button>
+
+              <div className="login-form__footer">
+                <span>{t("auth.login.noAccount")}</span>
+                <Link to="/register">{t("auth.login.createAccount")}</Link>
+              </div>
+            </form>
+          </section>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -109,4 +109,56 @@ export const pl = {
     delete: "Usuń",
     cancel: "Anuluj",
   },
+  auth: {
+    loader: {
+      title: "Przygotowujemy Twoją przestrzeń AI",
+      subtitle: "Ładujemy dokumenty, preferencje i sesję użytkownika...",
+    },
+    login: {
+      badge: "Nowoczesny workflow dokumentów",
+      title: "Witaj ponownie 👋",
+      subtitle:
+        "Rozmawiaj z plikami, porównuj wersje i wyciągaj wnioski w dużo lepszym interfejsie.",
+      featureChat: "Zadawaj pytania i wracaj do wcześniejszych rozmów AI.",
+      featureCompare: "Porównuj dokumenty i szybciej wychwytuj różnice.",
+      featureExtract: "Generuj streszczenia i ekstrakcję danych w jednym flow.",
+      formTitle: "Zaloguj się",
+      formSubtitle:
+        "Wejdź do swojej przestrzeni i kontynuuj dokładnie tam, gdzie skończyłeś.",
+      email: "E-mail",
+      emailPlaceholder: "nazwa@firma.com",
+      password: "Hasło",
+      passwordPlaceholder: "Wpisz hasło",
+      submit: "Zaloguj się",
+      signingIn: "Logowanie...",
+      noAccount: "Nie masz jeszcze konta?",
+      createAccount: "Utwórz konto",
+      error: "Logowanie nie powiodło się. Sprawdź dane i spróbuj ponownie.",
+    },
+  },
+  register: {
+    badge: "Utwórz swoją przestrzeń AI",
+    title: "Załóż konto ✨",
+    subtitle:
+      "Zacznij budować swoją przestrzeń do analizy dokumentów w lepszym i nowocześniejszym interfejsie.",
+    featureWorkspace:
+      "Skonfiguruj swoją osobistą przestrzeń AI w kilka sekund.",
+    featureFiles: "Wgrywaj, analizuj i porównuj pliki w jednym miejscu.",
+    featureFlow: "Pracuj szybciej dzięki streszczeniom, ekstrakcji i chatowi.",
+    formTitle: "Utwórz konto",
+    formSubtitle:
+      "Dołącz do aplikacji i zacznij porządkować swój workflow dokumentów.",
+    email: "E-mail",
+    emailPlaceholder: "nazwa@firma.com",
+    password: "Hasło",
+    passwordPlaceholder: "Utwórz mocne hasło",
+    submit: "Utwórz konto",
+    creating: "Tworzenie...",
+    haveAccount: "Masz już konto?",
+    signIn: "Zaloguj się",
+    error: "Rejestracja nie powiodła się. Spróbuj ponownie.",
+    loaderTitle: "Tworzymy Twoje konto",
+    loaderSubtitle:
+      "Przygotowujemy przestrzeń i przekierowujemy do logowania...",
+  },
 };
