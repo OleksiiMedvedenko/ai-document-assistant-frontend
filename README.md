@@ -1,26 +1,105 @@
-# AI Document Assistant
+# AI Document Assistant Frontend
 
-A fullstack AI application for analyzing documents in multiple formats.
+Modern React frontend for the **AI Document Assistant** platform.
 
-## Features
+This application provides a clean user interface for working with AI-powered document workflows such as uploading files, chatting with document content, generating summaries, comparing documents, and managing user access.
 
-- chat with documents
+## Overview
+
+The frontend is built as a standalone SPA and communicates with the backend API to handle:
+
+- authentication and session-aware UI
+- document upload and document list management
+- AI chat with uploaded documents
 - document summarization
-- file comparison
-- custom prompts
-- support for PDF, DOCX and TXT
+- document comparison
+- account area and admin area
+- multilingual UI
 
-## Tech stack
+The project is designed with a modular structure so features can evolve independently without turning the codebase into one large monolith.
 
-- Frontend: React, TypeScript, Vite
-- Backend: ASP.NET Core
-- AI: OpenAI API
+## Main Features
 
-## Use case
+- **Authentication flow**
+  - sign in / access-controlled routes
+  - auth bootstrap on app startup
+  - user-aware navigation and protected areas
 
-The application helps users upload documents, generate summaries, compare files, and ask contextual questions based on document content.
+- **Documents**
+  - upload documents
+  - browse uploaded files
+  - remove documents
+  - work with multiple supported file types
 
-## Repositories
+- **AI Workflows**
+  - ask questions about document content
+  - generate summaries
+  - compare two documents
+  - use custom prompts
 
-- Frontend: ai-document-assistant-frontend
-- Backend: AI.DocumentAssistant
+- **User Experience**
+  - dark/light theme persistence
+  - responsive interface
+  - reusable UI components
+  - loading and feedback states
+
+- **Internationalization**
+  - English
+  - Polish
+  - Ukrainian
+
+- **Admin Area**
+  - dedicated admin pages
+  - user and access-related management UI
+
+## Tech Stack
+
+### Core
+
+- **React 19**
+- **TypeScript**
+- **Vite**
+
+### Routing and Data
+
+- **React Router**
+- **@tanstack/react-query**
+- **Axios**
+
+### Forms and Validation
+
+- **react-hook-form**
+- **Zod**
+- **@hookform/resolvers**
+
+### State and UI Utilities
+
+- **Zustand**
+- **Lucide React**
+- **clsx**
+- **tailwind-merge**
+
+### Internationalization
+
+- **i18next**
+- **react-i18next**
+
+## Project Structure
+
+```text
+src/
+  app/
+    api/           # API clients and request helpers
+    components/    # shared UI components
+    features/      # feature modules and pages
+    lib/           # utilities and helpers
+    providers/     # app-level providers
+    router/        # route configuration
+    store/         # Zustand stores
+    styles/        # feature/page styles
+  i18n/
+    resources/     # translation dictionaries
+    index.ts       # i18n configuration
+  assets/
+  main.tsx
+```
