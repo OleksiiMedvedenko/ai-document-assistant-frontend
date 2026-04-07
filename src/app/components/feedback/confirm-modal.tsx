@@ -22,6 +22,19 @@ type ConfirmModalProps = {
   onCancel: () => void;
 };
 
+function resolveToneIcon(tone: ConfirmModalTone) {
+  if (tone === "danger") return <AlertTriangle size={22} />;
+  if (tone === "info") return <CheckCircle2 size={22} />;
+  return <RotateCcw size={22} />;
+}
+
+function resolveConfirmIcon(tone: ConfirmModalTone, busy: boolean) {
+  if (busy) return <Loader2 size={16} className="confirm-modal__spinner" />;
+  if (tone === "danger") return <AlertTriangle size={16} />;
+  if (tone === "info") return <CheckCircle2 size={16} />;
+  return <RotateCcw size={16} />;
+}
+
 export function ConfirmModal({
   open,
   title,
@@ -36,15 +49,7 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   if (!open) return null;
 
-  const resolvedIcon =
-    icon ??
-    (tone === "danger" ? (
-      <AlertTriangle size={22} />
-    ) : tone === "info" ? (
-      <CheckCircle2 size={22} />
-    ) : (
-      <RotateCcw size={22} />
-    ));
+  const resolvedIcon = icon ?? resolveToneIcon(tone);
 
   return (
     <div
@@ -102,17 +107,8 @@ export function ConfirmModal({
             className={`confirm-modal__button confirm-modal__button--${tone}`}
             disabled={busy}
           >
-            {busy ? (
-              <>
-                <Loader2 size={16} className="confirm-modal__spinner" />
-                <span>...</span>
-              </>
-            ) : (
-              <>
-                <RotateCcw size={16} />
-                <span>{confirmLabel}</span>
-              </>
-            )}
+            {resolveConfirmIcon(tone, busy)}
+            <span>{busy ? "..." : confirmLabel}</span>
           </button>
         </div>
       </div>

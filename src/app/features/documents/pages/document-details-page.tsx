@@ -18,14 +18,19 @@ import i18n from "@/i18n";
 import {
   AlertCircle,
   ArrowRight,
+  BadgeCheck,
   Bot,
+  FileText,
   GitCompareArrows,
   Loader2,
+  Orbit,
+  ShieldCheck,
   Sparkles,
+  TextCursorInput,
   Trash2,
   WandSparkles,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import "../../../styles/document-details-page.css";
@@ -148,6 +153,45 @@ function getApiErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+function formatDateTime(value?: string, locale = "en") {
+  if (!value) return "—";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  } catch {
+    return value;
+  }
+}
+
+function MetricCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="document-metric-card">
+      <div className="document-metric-card__label">
+        <span className="document-metric-card__icon">{icon}</span>
+        <span>{label}</span>
+      </div>
+      <h3>{value}</h3>
+    </div>
+  );
+}
+
 export function DocumentDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -172,6 +216,8 @@ export function DocumentDetailsPage() {
     if (!id) return;
 
     async function load() {
+      setLoading(true);
+
       try {
         setActionError("");
 
@@ -254,10 +300,13 @@ export function DocumentDetailsPage() {
     }
   }
 
+  const statusLabel = useMemo(() => getDocumentStatusLabel(status), [status]);
+
   if (loading) {
     return (
       <div className="document-details-loading surface-card">
         <Loader2 className="document-details-loading__spinner" />
+        <span>{t("common.loading")}</span>
       </div>
     );
   }
@@ -270,20 +319,40 @@ export function DocumentDetailsPage() {
     );
   }
 
-  const statusLabel = getDocumentStatusLabel(status);
-
   return (
     <div className="document-details-page">
       <section className="document-details-hero surface-card">
         <div className="document-details-hero__head">
-          <div>
+          <div className="document-details-hero__content">
             <div className="document-details-hero__badge">
-              <Sparkles size={15} />
+              <Sparkles size={14} />
               <span>{t("details.overview")}</span>
             </div>
 
             <h1>{getDocumentDisplayName(documentItem)}</h1>
             <p>{t("details.subtitle")}</p>
+
+            <div className="document-details-hero__chips">
+              <div className="document-details-chip">
+                <FileText size={14} />
+                <span>{getDocumentTypeLabel(documentItem)}</span>
+              </div>
+
+              <div className="document-details-chip">
+                <ShieldCheck size={14} />
+                <span>
+                  {t(
+                    `documents.status.${statusLabel.toLowerCase()}`,
+                    statusLabel,
+                  )}
+                </span>
+              </div>
+
+              <div className="document-details-chip">
+                <BadgeCheck size={14} />
+                <span>{getDocumentSizeLabel(documentItem)}</span>
+              </div>
+            </div>
           </div>
 
           <div className={statusClass(status)}>
@@ -299,27 +368,29 @@ export function DocumentDetailsPage() {
         ) : null}
 
         <div className="document-details-metrics">
-          <div className="document-metric-card">
-            <p>{t("details.fileType")}</p>
-            <h3>{getDocumentTypeLabel(documentItem)}</h3>
-          </div>
+          <MetricCard
+            icon={<FileText size={13} />}
+            label={t("details.fileType")}
+            value={getDocumentTypeLabel(documentItem)}
+          />
 
-          <div className="document-metric-card">
-            <p>{t("details.mimeType")}</p>
-            <h3 className="document-metric-card__break">
-              {getDocumentMimeValue(documentItem)}
-            </h3>
-          </div>
+          <MetricCard
+            icon={<Orbit size={13} />}
+            label={t("details.mimeType")}
+            value={getDocumentMimeValue(documentItem)}
+          />
 
-          <div className="document-metric-card">
-            <p>{t("details.size")}</p>
-            <h3>{getDocumentSizeLabel(documentItem)}</h3>
-          </div>
+          <MetricCard
+            icon={<BadgeCheck size={13} />}
+            label={t("details.size")}
+            value={getDocumentSizeLabel(documentItem)}
+          />
 
-          <div className="document-metric-card">
-            <p>{t("details.documentId")}</p>
-            <h3 className="document-metric-card__break">{documentItem.id}</h3>
-          </div>
+          <MetricCard
+            icon={<TextCursorInput size={13} />}
+            label={t("details.documentId")}
+            value={documentItem.id}
+          />
         </div>
 
         <div className="document-details-actions">
@@ -327,8 +398,13 @@ export function DocumentDetailsPage() {
             type="button"
             onClick={() => void handleSummarize()}
             className="detail-action detail-action--primary"
+            disabled={summaryLoading}
           >
-            <WandSparkles size={18} />
+            {summaryLoading ? (
+              <Loader2 size={18} className="spin" />
+            ) : (
+              <WandSparkles size={18} />
+            )}
             <span>
               {summaryLoading
                 ? t("details.generating")
@@ -353,6 +429,7 @@ export function DocumentDetailsPage() {
             type="button"
             onClick={() => setDeleteOpen(true)}
             className="detail-action detail-action--danger"
+            disabled={deleteBusy}
           >
             <Trash2 size={18} />
             <span>{t("documents.delete")}</span>
@@ -410,9 +487,14 @@ export function DocumentDetailsPage() {
             <button
               type="button"
               onClick={() => void handleExtract()}
-              className="detail-action detail-action--full"
+              className="detail-action detail-action--primary detail-action--full"
+              disabled={extractLoading}
             >
-              <ArrowRight size={18} />
+              {extractLoading ? (
+                <Loader2 size={18} className="spin" />
+              ) : (
+                <ArrowRight size={18} />
+              )}
               <span>
                 {extractLoading
                   ? t("details.extracting")
@@ -440,19 +522,23 @@ export function DocumentDetailsPage() {
             extractions.map((item) => (
               <article key={item.id} className="history-card">
                 <div className="history-card__top">
-                  <div>
+                  <div className="history-card__title-wrap">
                     <h3>
                       {item.extractionType ?? t("details.extractionItem")}
                     </h3>
-                    <p>{item.createdAt ?? t("details.extractionItem")}</p>
+                    <p>{formatDateTime(item.createdAt, currentLanguage)}</p>
                   </div>
 
-                  <span>{item.id}</span>
+                  <span className="history-card__id">{item.id}</span>
                 </div>
 
                 {item.resultJson ? (
                   <pre className="history-card__result">{item.resultJson}</pre>
-                ) : null}
+                ) : (
+                  <div className="history-card__empty">
+                    {t("details.extractionItem")}
+                  </div>
+                )}
               </article>
             ))
           )}

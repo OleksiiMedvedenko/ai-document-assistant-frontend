@@ -1,14 +1,41 @@
 import {
   ArrowRight,
+  BadgeCheck,
   FileText,
   GitCompareArrows,
   MessageSquareText,
   Sparkles,
   Upload,
+  WandSparkles,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import "../../../styles/home-page.css";
+
+function HomeInsightCard({
+  icon,
+  label,
+  value,
+  hint,
+  tone = "gold",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  hint: string;
+  tone?: "gold" | "purple" | "green";
+}) {
+  return (
+    <div className={`home-insight-card home-insight-card--${tone}`}>
+      <div className="home-insight-card__icon">{icon}</div>
+      <div className="home-insight-card__content">
+        <span>{label}</span>
+        <strong>{value}</strong>
+        <small>{hint}</small>
+      </div>
+    </div>
+  );
+}
 
 export function HomePage() {
   const { t } = useTranslation();
@@ -57,23 +84,37 @@ export function HomePage() {
       <section className="home-hero surface-card">
         <div className="home-hero__content">
           <div className="home-hero__badge">
-            <Sparkles size={16} />
+            <Sparkles size={14} />
             <span>{t("home.badge")}</span>
           </div>
 
           <h1>{t("home.title")}</h1>
           <p>{t("home.subtitle")}</p>
 
+          <div className="home-hero__chips">
+            <div className="home-hero-chip">
+              <Upload size={14} />
+              <span>{t("home.actions.uploadTitle")}</span>
+            </div>
+
+            <div className="home-hero-chip">
+              <WandSparkles size={14} />
+              <span>{t("home.highlights.aiTitle")}</span>
+            </div>
+
+            <div className="home-hero-chip">
+              <GitCompareArrows size={14} />
+              <span>{t("home.actions.compareTitle")}</span>
+            </div>
+          </div>
+
           <div className="home-hero__actions">
-            <Link to="/documents" className="primary-button home-hero__primary">
+            <Link to="/documents" className="home-primary-button">
               <Upload size={18} />
               <span>{t("home.primaryCta")}</span>
             </Link>
 
-            <Link
-              to="/compare"
-              className="secondary-button home-hero__secondary"
-            >
+            <Link to="/compare" className="home-secondary-button">
               <GitCompareArrows size={18} />
               <span>{t("home.secondaryCta")}</span>
             </Link>
@@ -96,12 +137,12 @@ export function HomePage() {
                 <p className="home-preview__label">
                   {t("home.preview.documents")}
                 </p>
-                <h3>-</h3>
+                <h3>AI Docs</h3>
               </div>
 
               <div className="home-preview__card">
                 <p className="home-preview__label">{t("home.preview.ready")}</p>
-                <h3>-</h3>
+                <h3>24/7</h3>
               </div>
 
               <div className="home-preview__card home-preview__card--wide">
@@ -116,6 +157,30 @@ export function HomePage() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="home-insights">
+        <HomeInsightCard
+          icon={<FileText size={16} />}
+          label={t("home.quickActionsTitle")}
+          value={t("home.actions.uploadTitle")}
+          hint={t("home.actions.uploadDescription")}
+          tone="gold"
+        />
+        <HomeInsightCard
+          icon={<BadgeCheck size={16} />}
+          label={t("home.highlightsTitle")}
+          value={t("home.highlights.libraryTitle")}
+          hint={t("home.highlights.libraryDescription")}
+          tone="green"
+        />
+        <HomeInsightCard
+          icon={<GitCompareArrows size={16} />}
+          label={t("home.secondaryCta")}
+          value={t("home.actions.compareTitle")}
+          hint={t("home.actions.compareDescription")}
+          tone="purple"
+        />
       </section>
 
       <section className="home-grid">
@@ -140,7 +205,7 @@ export function HomePage() {
                   className="home-action-card"
                 >
                   <div className="home-action-card__icon">
-                    <Icon size={20} />
+                    <Icon size={19} />
                   </div>
 
                   <div className="home-action-card__content">
@@ -172,7 +237,7 @@ export function HomePage() {
               return (
                 <div key={item.title} className="home-highlight-card">
                   <div className="home-highlight-card__icon">
-                    <Icon size={20} />
+                    <Icon size={19} />
                   </div>
                   <h3>{item.title}</h3>
                   <p>{item.description}</p>

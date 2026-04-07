@@ -3,13 +3,16 @@ import { getDocumentDisplayName } from "@/app/lib/document";
 import {
   AlertCircle,
   ArrowRight,
+  BadgeCheck,
   Check,
   ChevronsUpDown,
   FileText,
   GitCompareArrows,
   Loader2,
+  RefreshCcw,
   Search,
   Sparkles,
+  TextCursorInput,
   WandSparkles,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -117,6 +120,31 @@ function getApiErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+function CompareInsightCard({
+  icon,
+  label,
+  value,
+  hint,
+  tone = "gold",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  hint?: string;
+  tone?: "gold" | "purple" | "green";
+}) {
+  return (
+    <div className={`compare-insight-card compare-insight-card--${tone}`}>
+      <div className="compare-insight-card__icon">{icon}</div>
+      <div className="compare-insight-card__content">
+        <span>{label}</span>
+        <strong>{value}</strong>
+        {hint ? <small>{hint}</small> : null}
+      </div>
+    </div>
+  );
+}
+
 export function ComparePage() {
   const { t, i18n } = useTranslation();
   const apiLanguage = mapLanguageToApi(i18n.resolvedLanguage ?? i18n.language);
@@ -138,6 +166,8 @@ export function ComparePage() {
 
   useEffect(() => {
     async function load() {
+      setLoading(true);
+
       try {
         setActionError("");
 
@@ -275,23 +305,55 @@ export function ComparePage() {
     }
   }
 
+  async function handleReloadDocuments() {
+    setLoading(true);
+
+    try {
+      setActionError("");
+      const data = await getDocuments();
+      const list = Array.isArray(data) ? data : [];
+      setDocuments(list);
+    } catch (error) {
+      setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="compare-page">
       <section className="compare-hero surface-card">
         <div className="compare-hero__intro">
           <div className="compare-hero__badge">
-            <Sparkles size={15} />
+            <Sparkles size={14} />
             <span>{t("compare.badge")}</span>
           </div>
 
           <h1>{t("compare.title")}</h1>
           <p>{t("compare.subtitle")}</p>
+
+          <div className="compare-hero__chips">
+            <div className="compare-hero-chip">
+              <FileText size={14} />
+              <span>{documents.length}</span>
+            </div>
+
+            <div className="compare-hero-chip">
+              <GitCompareArrows size={14} />
+              <span>{t("compare.setupTitle")}</span>
+            </div>
+
+            <div className="compare-hero-chip">
+              <WandSparkles size={14} />
+              <span>{t("compare.result")}</span>
+            </div>
+          </div>
         </div>
 
         <div className="compare-hero__preview">
           <div className="compare-preview-card">
             <div className="compare-preview-card__item">
-              <FileText size={18} />
+              <FileText size={17} />
               <span>
                 {firstDoc
                   ? getDocumentDisplayName(firstDoc)
@@ -304,7 +366,7 @@ export function ComparePage() {
             </div>
 
             <div className="compare-preview-card__item">
-              <FileText size={18} />
+              <FileText size={17} />
               <span>
                 {secondDoc
                   ? getDocumentDisplayName(secondDoc)
@@ -315,6 +377,32 @@ export function ComparePage() {
         </div>
       </section>
 
+      <section className="compare-insights">
+        <CompareInsightCard
+          icon={<FileText size={16} />}
+          label={t("compare.setupTitle")}
+          value={documents.length}
+          hint={t("compare.searchDocuments")}
+          tone="gold"
+        />
+        <CompareInsightCard
+          icon={<BadgeCheck size={16} />}
+          label={t("compare.first")}
+          value={
+            firstDoc ? getDocumentDisplayName(firstDoc) : t("compare.first")
+          }
+          hint={t("compare.swap")}
+          tone="purple"
+        />
+        <CompareInsightCard
+          icon={<TextCursorInput size={16} />}
+          label={t("compare.prompt")}
+          value={prompt.trim() ? prompt.trim().slice(0, 40) : "—"}
+          hint={t("compare.resultKicker")}
+          tone="green"
+        />
+      </section>
+
       <section className="compare-layout">
         <div className="compare-panel surface-card">
           <div className="compare-panel__header">
@@ -322,6 +410,20 @@ export function ComparePage() {
               <p className="section-kicker">{t("compare.setupKicker")}</p>
               <h2>{t("compare.setupTitle")}</h2>
             </div>
+
+            <button
+              type="button"
+              className="compare-refresh-button"
+              onClick={() => void handleReloadDocuments()}
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 size={15} className="spin" />
+              ) : (
+                <RefreshCcw size={15} />
+              )}
+              <span>{t("common.refresh")}</span>
+            </button>
           </div>
 
           {actionError ? (
@@ -348,7 +450,7 @@ export function ComparePage() {
                   }
                 >
                   <div className="doc-picker__trigger-content">
-                    <FileText size={18} />
+                    <FileText size={17} />
                     <span>
                       {firstDoc
                         ? getDocumentDisplayName(firstDoc)
@@ -383,11 +485,11 @@ export function ComparePage() {
                             onClick={() => handlePickDocument("first", doc.id)}
                           >
                             <div className="doc-picker__option-main">
-                              <FileText size={16} />
+                              <FileText size={15} />
                               <span>{getDocumentDisplayName(doc)}</span>
                             </div>
 
-                            {active ? <Check size={16} /> : null}
+                            {active ? <Check size={15} /> : null}
                           </button>
                         );
                       })}
@@ -421,7 +523,7 @@ export function ComparePage() {
                   }
                 >
                   <div className="doc-picker__trigger-content">
-                    <FileText size={18} />
+                    <FileText size={17} />
                     <span>
                       {secondDoc
                         ? getDocumentDisplayName(secondDoc)
@@ -456,11 +558,11 @@ export function ComparePage() {
                             onClick={() => handlePickDocument("second", doc.id)}
                           >
                             <div className="doc-picker__option-main">
-                              <FileText size={16} />
+                              <FileText size={15} />
                               <span>{getDocumentDisplayName(doc)}</span>
                             </div>
 
-                            {active ? <Check size={16} /> : null}
+                            {active ? <Check size={15} /> : null}
                           </button>
                         );
                       })}

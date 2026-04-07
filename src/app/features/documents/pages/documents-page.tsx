@@ -12,11 +12,14 @@ import {
 import {
   AlertCircle,
   ArrowRight,
+  BadgeCheck,
   Clock3,
   FileText,
   FileUp,
   GitCompareArrows,
+  Loader2,
   MessageSquareText,
+  RefreshCcw,
   Search,
   Sparkles,
   Trash2,
@@ -137,8 +140,50 @@ function getApiErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+function formatDate(value?: string, locale = "en") {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(date);
+  } catch {
+    return "";
+  }
+}
+
+function DocumentsInsightCard({
+  icon,
+  label,
+  value,
+  hint,
+  tone = "gold",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  hint?: string;
+  tone?: "gold" | "purple" | "green";
+}) {
+  return (
+    <div className={`documents-insight-card documents-insight-card--${tone}`}>
+      <div className="documents-insight-card__icon">{icon}</div>
+      <div className="documents-insight-card__content">
+        <span>{label}</span>
+        <strong>{value}</strong>
+        {hint ? <small>{hint}</small> : null}
+      </div>
+    </div>
+  );
+}
+
 export function DocumentsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -222,7 +267,6 @@ export function DocumentsPage() {
         }, STATUS_POLL_INTERVAL_MS);
       }
     } catch (error) {
-      console.error("uploadDocument error:", error);
       setActionError(getApiErrorMessage(error, t("limits.uploadReached")));
     } finally {
       setUploading(false);
@@ -266,12 +310,14 @@ export function DocumentsPage() {
     return value === "Pending" || value === "Processing";
   }).length;
 
+  const locale = i18n.resolvedLanguage ?? i18n.language ?? "en";
+
   return (
     <div className="documents-page">
       <section className="documents-hero surface-card">
         <div className="documents-hero__content">
           <div className="documents-hero__badge">
-            <Sparkles size={15} />
+            <Sparkles size={14} />
             <span>{t("documents.heroBadge")}</span>
           </div>
 
@@ -285,32 +331,48 @@ export function DocumentsPage() {
             </div>
           ) : null}
 
-          <label className="documents-upload">
-            <input
-              type="file"
-              className="documents-upload__input"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) {
-                  void handleUpload(file);
-                  event.currentTarget.value = "";
-                }
-              }}
-            />
+          <div className="documents-hero__actions">
+            <label className="documents-upload">
+              <input
+                type="file"
+                className="documents-upload__input"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) {
+                    void handleUpload(file);
+                    event.currentTarget.value = "";
+                  }
+                }}
+              />
 
-            <div className="documents-upload__icon">
-              {uploading ? <FileUp size={24} /> : <UploadCloud size={24} />}
-            </div>
+              <div className="documents-upload__icon">
+                {uploading ? <FileUp size={22} /> : <UploadCloud size={22} />}
+              </div>
 
-            <div className="documents-upload__content">
-              <strong>
-                {uploading
-                  ? t("documents.uploading")
-                  : t("documents.uploadTitle")}
-              </strong>
-              <span>{t("documents.uploadSubtitle")}</span>
-            </div>
-          </label>
+              <div className="documents-upload__content">
+                <strong>
+                  {uploading
+                    ? t("documents.uploading")
+                    : t("documents.uploadTitle")}
+                </strong>
+                <span>{t("documents.uploadSubtitle")}</span>
+              </div>
+            </label>
+
+            <button
+              type="button"
+              className="documents-refresh-button"
+              onClick={() => void loadDocuments(true)}
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 size={16} className="spin" />
+              ) : (
+                <RefreshCcw size={16} />
+              )}
+              <span>{t("common.refresh")}</span>
+            </button>
+          </div>
         </div>
 
         <div className="documents-hero__stats">
@@ -329,6 +391,30 @@ export function DocumentsPage() {
             <h3>{processingCount}</h3>
           </div>
         </div>
+      </section>
+
+      <section className="documents-insights">
+        <DocumentsInsightCard
+          icon={<FileText size={16} />}
+          label={t("documents.totalDocuments")}
+          value={documents.length}
+          hint={t("documents.librarySubtitle")}
+          tone="gold"
+        />
+        <DocumentsInsightCard
+          icon={<BadgeCheck size={16} />}
+          label={t("documents.aiReady")}
+          value={aiReadyCount}
+          hint={t("documents.readyForAi")}
+          tone="green"
+        />
+        <DocumentsInsightCard
+          icon={<Clock3 size={16} />}
+          label={t("documents.processingNow")}
+          value={processingCount}
+          hint={t("documents.actions")}
+          tone="purple"
+        />
       </section>
 
       <section className="documents-library surface-card">
@@ -354,7 +440,7 @@ export function DocumentsPage() {
         {loading ? (
           <div className="documents-empty">
             <div className="documents-empty__icon">
-              <FileText size={22} />
+              <Loader2 size={22} className="spin" />
             </div>
             <h3>{t("common.loading")}</h3>
           </div>
@@ -370,13 +456,14 @@ export function DocumentsPage() {
           <div className="documents-grid">
             {filteredDocuments.map((doc) => {
               const statusLabel = getDocumentStatusLabel(doc.status);
+              const processing = isProcessingStatus(doc.status);
 
               return (
                 <article key={doc.id} className="document-card">
                   <div className="document-card__top">
                     <div className="document-card__file">
                       <div className="document-card__file-icon">
-                        <FileText size={20} />
+                        <FileText size={18} />
                       </div>
 
                       <div className="document-card__file-info">
@@ -404,9 +491,27 @@ export function DocumentsPage() {
                     </span>
 
                     <span className="document-card__meta-chip">
-                      <Clock3 size={14} />
-                      {t("documents.readyForAi")}
+                      <Clock3 size={13} />
+                      {doc.createdAt
+                        ? formatDate(doc.createdAt, locale)
+                        : t("documents.readyForAi")}
                     </span>
+                  </div>
+
+                  <div className="document-card__summary">
+                    <div className="document-card__summary-item">
+                      <span>{t("details.fileType")}</span>
+                      <strong>{getDocumentTypeLabel(doc)}</strong>
+                    </div>
+
+                    <div className="document-card__summary-item">
+                      <span>{t("documents.actions")}</span>
+                      <strong>
+                        {processing
+                          ? t("documents.processingNow")
+                          : t("documents.aiReady")}
+                      </strong>
+                    </div>
                   </div>
 
                   <div className="document-card__actions">
