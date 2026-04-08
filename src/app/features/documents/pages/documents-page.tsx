@@ -8,6 +8,9 @@ import {
   getDocumentDisplayName,
   getDocumentStatusLabel,
   getDocumentTypeLabel,
+  isDocumentProcessing,
+  isDocumentReady,
+  normalizeDocumentStatus,
 } from "@/app/lib/document";
 import {
   AlertCircle,
@@ -38,25 +41,35 @@ type DocumentItem = {
   name?: string;
   status?: number | string;
   createdAt?: string;
+  uploadedAtUtc?: string;
+  processedAtUtc?: string;
   contentType?: string;
   mimeType?: string;
+  errorMessage?: string | null;
 };
 
 const STATUS_POLL_INTERVAL_MS = 3000;
 
 function statusClass(status: number | string | undefined) {
-  const value = getDocumentStatusLabel(status);
+  const value = normalizeDocumentStatus(status);
 
-  if (value === "Pending") return "doc-status doc-status--pending";
-  if (value === "Processing") return "doc-status doc-status--processing";
-  if (value === "Completed") return "doc-status doc-status--completed";
-  if (value === "Ready") return "doc-status doc-status--ready";
+  if (value === "uploaded" || value === "queued") {
+    return "doc-status doc-status--pending";
+  }
+
+  if (value === "processing") {
+    return "doc-status doc-status--processing";
+  }
+
+  if (value === "ready") {
+    return "doc-status doc-status--ready";
+  }
+
+  if (value === "failed") {
+    return "doc-status doc-status--failed";
+  }
+
   return "doc-status doc-status--unknown";
-}
-
-function isProcessingStatus(status: number | string | undefined) {
-  const value = getDocumentStatusLabel(status);
-  return value === "Pending" || value === "Processing";
 }
 
 function getApiErrorMessage(error: unknown, fallback: string) {
@@ -112,7 +125,9 @@ function getApiErrorMessage(error: unknown, fallback: string) {
 
       const nestedMessage =
         record.message ??
+        record.Message ??
         record.error ??
+        record.errorMessage ??
         record.title ??
         record.detail ??
         record.errors;
@@ -201,6 +216,7 @@ export function DocumentsPage() {
     }
 
     try {
+      setActionError("");
       const data = await getDocuments();
       setDocuments(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -217,7 +233,7 @@ export function DocumentsPage() {
   }, []);
 
   const hasProcessingDocuments = useMemo(() => {
-    return documents.some((doc) => isProcessingStatus(doc.status));
+    return documents.some((doc) => isDocumentProcessing(doc.status));
   }, [documents]);
 
   useEffect(() => {
@@ -258,7 +274,6 @@ export function DocumentsPage() {
 
     try {
       await uploadDocument(file);
-
       await loadDocuments(false);
 
       if (!pollingRef.current) {
@@ -300,15 +315,13 @@ export function DocumentsPage() {
     );
   }, [documents, search]);
 
-  const aiReadyCount = documents.filter((doc) => {
-    const value = getDocumentStatusLabel(doc.status);
-    return value === "Completed" || value === "Ready";
-  }).length;
+  const aiReadyCount = documents.filter((doc) =>
+    isDocumentReady(doc.status),
+  ).length;
 
-  const processingCount = documents.filter((doc) => {
-    const value = getDocumentStatusLabel(doc.status);
-    return value === "Pending" || value === "Processing";
-  }).length;
+  const processingCount = documents.filter((doc) =>
+    isDocumentProcessing(doc.status),
+  ).length;
 
   const locale = i18n.resolvedLanguage ?? i18n.language ?? "en";
 
@@ -456,7 +469,8 @@ export function DocumentsPage() {
           <div className="documents-grid">
             {filteredDocuments.map((doc) => {
               const statusLabel = getDocumentStatusLabel(doc.status);
-              const processing = isProcessingStatus(doc.status);
+              const processing = isDocumentProcessing(doc.status);
+              const ready = isDocumentReady(doc.status);
 
               return (
                 <article key={doc.id} className="document-card">
@@ -492,9 +506,9 @@ export function DocumentsPage() {
 
                     <span className="document-card__meta-chip">
                       <Clock3 size={13} />
-                      {doc.createdAt
-                        ? formatDate(doc.createdAt, locale)
-                        : t("documents.readyForAi")}
+                      {doc.uploadedAtUtc || doc.createdAt
+                        ? formatDate(doc.uploadedAtUtc ?? doc.createdAt, locale)
+                        : "—"}
                     </span>
                   </div>
 
@@ -509,7 +523,9 @@ export function DocumentsPage() {
                       <strong>
                         {processing
                           ? t("documents.processingNow")
-                          : t("documents.aiReady")}
+                          : ready
+                            ? t("documents.aiReady")
+                            : statusLabel}
                       </strong>
                     </div>
                   </div>
@@ -540,7 +556,11 @@ export function DocumentsPage() {
                   <div className="document-card__footer">
                     <span>
                       <WandSparkles size={14} />
-                      {t("documents.actions")}
+                      {ready
+                        ? t("documents.readyForAi")
+                        : processing
+                          ? t("documents.processingNow")
+                          : t("documents.actions")}
                     </span>
                   </div>
                 </article>

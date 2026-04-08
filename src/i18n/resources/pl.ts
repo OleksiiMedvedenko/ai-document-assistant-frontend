@@ -63,10 +63,11 @@ export const pl = {
     searchPlaceholder: "Szukaj dokumentów...",
     delete: "Usuń",
     status: {
-      pending: "Oczekuje",
+      uploaded: "Przesłany",
+      queued: "W kolejce",
       processing: "Przetwarzanie",
-      completed: "Zakończono",
       ready: "Gotowy",
+      failed: "Błąd",
       unknown: "Nieznany",
     },
     processingNow: "W trakcie przetwarzania",

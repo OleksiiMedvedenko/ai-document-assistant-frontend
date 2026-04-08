@@ -9,7 +9,18 @@ export type DocumentLike = {
   fileSizeInBytes?: number;
   status?: number | string;
   createdAt?: string;
+  uploadedAtUtc?: string;
+  processedAtUtc?: string;
+  errorMessage?: string | null;
 };
+
+export type NormalizedDocumentStatus =
+  | "uploaded"
+  | "queued"
+  | "processing"
+  | "ready"
+  | "failed"
+  | "unknown";
 
 export function getDocumentDisplayName(doc?: DocumentLike | null) {
   return (
@@ -20,9 +31,9 @@ export function getDocumentDisplayName(doc?: DocumentLike | null) {
 export function getDocumentTypeLabel(doc?: DocumentLike | null) {
   if (!doc) return "Document";
 
-  const raw = doc.contentType || doc.mimeType;
-  if (!raw) return "Document";
+  const raw = (doc.contentType || doc.mimeType || "").toLowerCase();
 
+  if (!raw) return "Document";
   if (raw.includes("wordprocessingml")) return "DOCX";
   if (raw.includes("spreadsheetml")) return "XLSX";
   if (raw.includes("presentationml")) return "PPTX";
@@ -53,10 +64,75 @@ export function getDocumentSizeLabel(doc?: DocumentLike | null) {
   return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[unit]}`;
 }
 
+export function normalizeDocumentStatus(
+  status: number | string | undefined,
+): NormalizedDocumentStatus {
+  if (typeof status === "number") {
+    switch (status) {
+      case 0:
+        return "uploaded";
+      case 1:
+        return "queued";
+      case 2:
+        return "processing";
+      case 3:
+        return "ready";
+      case 4:
+        return "failed";
+      default:
+        return "unknown";
+    }
+  }
+
+  const value = String(status ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (value === "uploaded") return "uploaded";
+  if (value === "queued" || value === "pending") return "queued";
+  if (value === "processing") return "processing";
+  if (value === "ready" || value === "completed") return "ready";
+  if (value === "failed" || value === "error") return "failed";
+
+  return "unknown";
+}
+
 export function getDocumentStatusLabel(status: number | string | undefined) {
-  if (status === 0 || status === "Pending") return "Pending";
-  if (status === 1 || status === "Processing") return "Processing";
-  if (status === 2 || status === "Completed") return "Completed";
-  if (status === 3 || status === "Ready") return "Ready";
-  return "Unknown";
+  const normalized = normalizeDocumentStatus(status);
+
+  switch (normalized) {
+    case "uploaded":
+      return "Uploaded";
+    case "queued":
+      return "Queued";
+    case "processing":
+      return "Processing";
+    case "ready":
+      return "Ready";
+    case "failed":
+      return "Failed";
+    default:
+      return "Unknown";
+  }
+}
+
+export function isDocumentReady(status: number | string | undefined) {
+  return normalizeDocumentStatus(status) === "ready";
+}
+
+export function isDocumentProcessing(status: number | string | undefined) {
+  const normalized = normalizeDocumentStatus(status);
+  return (
+    normalized === "uploaded" ||
+    normalized === "queued" ||
+    normalized === "processing"
+  );
+}
+
+export function isDocumentFailed(status: number | string | undefined) {
+  return normalizeDocumentStatus(status) === "failed";
+}
+
+export function canUseDocumentAi(status: number | string | undefined) {
+  return isDocumentReady(status);
 }

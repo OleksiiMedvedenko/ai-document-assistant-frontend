@@ -1,5 +1,5 @@
 import { compareDocuments, getDocuments } from "@/app/api/documents.api";
-import { getDocumentDisplayName } from "@/app/lib/document";
+import { getDocumentDisplayName, isDocumentReady } from "@/app/lib/document";
 import {
   AlertCircle,
   ArrowRight,
@@ -24,6 +24,7 @@ type DocumentItem = {
   fileName?: string;
   originalFileName?: string;
   name?: string;
+  status?: number | string;
 };
 
 type PickerMode = "first" | "second" | null;
@@ -92,7 +93,9 @@ function getApiErrorMessage(error: unknown, fallback: string) {
 
       const nestedMessage =
         record.message ??
+        record.Message ??
         record.error ??
+        record.errorMessage ??
         record.title ??
         record.detail ??
         record.errors;
@@ -164,27 +167,46 @@ export function ComparePage() {
   const previousDefaultPromptRef = useRef(defaultPrompt);
   const [prompt, setPrompt] = useState(defaultPrompt);
 
-  useEffect(() => {
-    async function load() {
+  async function loadDocuments(showLoader = true) {
+    if (showLoader) {
       setLoading(true);
+    }
 
-      try {
-        setActionError("");
+    try {
+      setActionError("");
 
-        const data = await getDocuments();
-        const list = Array.isArray(data) ? data : [];
-        setDocuments(list);
+      const data = await getDocuments();
+      const list = Array.isArray(data)
+        ? data.filter((item) => isDocumentReady(item.status))
+        : [];
 
-        if (list[0]?.id) setFirstDocumentId(list[0].id);
-        if (list[1]?.id) setSecondDocumentId(list[1].id);
-      } catch (error) {
-        setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
-      } finally {
+      setDocuments(list);
+
+      setFirstDocumentId((current) =>
+        current && list.some((doc) => doc.id === current)
+          ? current
+          : (list[0]?.id ?? ""),
+      );
+
+      setSecondDocumentId((current) => {
+        if (current && list.some((doc) => doc.id === current)) {
+          return current;
+        }
+
+        const fallback = list.find((doc) => doc.id !== (list[0]?.id ?? ""));
+        return fallback?.id ?? "";
+      });
+    } catch (error) {
+      setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
+    } finally {
+      if (showLoader) {
         setLoading(false);
       }
     }
+  }
 
-    void load();
+  useEffect(() => {
+    void loadDocuments(true);
   }, [t]);
 
   useEffect(() => {
@@ -306,18 +328,7 @@ export function ComparePage() {
   }
 
   async function handleReloadDocuments() {
-    setLoading(true);
-
-    try {
-      setActionError("");
-      const data = await getDocuments();
-      const list = Array.isArray(data) ? data : [];
-      setDocuments(list);
-    } catch (error) {
-      setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
-    } finally {
-      setLoading(false);
-    }
+    await loadDocuments(true);
   }
 
   return (

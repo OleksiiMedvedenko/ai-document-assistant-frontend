@@ -3,8 +3,12 @@ import {
   getChatMessages,
   getChatSessions,
 } from "@/app/api/chats.api";
-import { getDocument } from "@/app/api/documents.api";
-import { getDocumentDisplayName } from "@/app/lib/document";
+import { getDocument, getDocumentStatus } from "@/app/api/documents.api";
+import {
+  getDocumentDisplayName,
+  isDocumentProcessing,
+  isDocumentReady,
+} from "@/app/lib/document";
 import "@/app/styles/document-chat-page.css";
 import i18n from "@/i18n";
 import {
@@ -47,6 +51,8 @@ type DocumentDto = {
   originalFileName?: string;
   name?: string;
 };
+
+const STATUS_POLL_INTERVAL_MS = 3000;
 
 function normalizeLanguage(language?: string) {
   if (!language) return "en";
@@ -188,7 +194,9 @@ function getApiErrorMessage(error: unknown, fallback: string) {
 
       const nestedMessage =
         record.message ??
+        record.Message ??
         record.error ??
+        record.errorMessage ??
         record.title ??
         record.detail ??
         record.errors;
@@ -255,6 +263,9 @@ export function DocumentChatPage() {
   const { t } = useTranslation();
 
   const [documentItem, setDocumentItem] = useState<DocumentDto | null>(null);
+  const [documentStatus, setDocumentStatus] = useState<
+    number | string | undefined
+  >(undefined);
   const [sessions, setSessions] = useState<SessionItem[]>([]);
   const [activeSessionId, setActiveSessionId] = useState("");
   const [messages, setMessages] = useState<MessageItem[]>([]);
@@ -266,8 +277,23 @@ export function DocumentChatPage() {
 
   const currentLanguage = normalizeLanguage(i18n.language);
   const endRef = useRef<HTMLDivElement | null>(null);
+  const pollingRef = useRef<number | null>(null);
 
-  const canSend = useMemo(() => prompt.trim().length > 0 && !!id, [prompt, id]);
+  const chatReady = useMemo(
+    () => isDocumentReady(documentStatus),
+    [documentStatus],
+  );
+
+  const chatProcessing = useMemo(
+    () => isDocumentProcessing(documentStatus),
+    [documentStatus],
+  );
+
+  const canSend = useMemo(
+    () => prompt.trim().length > 0 && !!id && chatReady,
+    [prompt, id, chatReady],
+  );
+
   const activeSession = useMemo(
     () => sessions.find((session) => session.id === activeSessionId) ?? null,
     [sessions, activeSessionId],
@@ -277,50 +303,89 @@ export function DocumentChatPage() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, sending]);
 
-  useEffect(() => {
+  async function loadChat(showLoader = false) {
     if (!id) return;
 
-    async function load() {
+    if (showLoader) {
       setLoading(true);
+    }
 
-      try {
-        setActionError("");
+    try {
+      setActionError("");
 
-        const [doc, sessionPayload] = await Promise.all([
-          getDocument(id ?? ""),
-          getChatSessions(id ?? "").catch(() => []),
-        ]);
+      const [doc, docStatus, sessionPayload] = await Promise.all([
+        getDocument(id),
+        getDocumentStatus(id),
+        getChatSessions(id).catch(() => []),
+      ]);
 
-        setDocumentItem(doc);
+      setDocumentItem(doc);
+      setDocumentStatus(docStatus?.status ?? docStatus);
 
-        const safeSessions = normalizeSessions(sessionPayload).filter(
-          (session) => typeof session?.id === "string" && session.id.length > 0,
-        );
+      const safeSessions = normalizeSessions(sessionPayload).filter(
+        (session) => typeof session?.id === "string" && session.id.length > 0,
+      );
 
-        setSessions(safeSessions);
+      setSessions(safeSessions);
 
-        if (safeSessions[0]?.id) {
-          setActiveSessionId(safeSessions[0].id);
+      if (!activeSessionId && safeSessions[0]?.id) {
+        setActiveSessionId(safeSessions[0].id);
 
-          const sessionMessages = await getChatMessages(
-            id ?? "",
-            safeSessions[0].id,
-          ).catch(() => []);
+        const sessionMessages = await getChatMessages(
+          id,
+          safeSessions[0].id,
+        ).catch(() => []);
 
-          setMessages(normalizeMessages(sessionMessages));
-        } else {
-          setMessages([]);
-          setActiveSessionId("");
-        }
-      } catch (error) {
-        setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
-      } finally {
+        setMessages(normalizeMessages(sessionMessages));
+      } else if (!safeSessions.length) {
+        setMessages([]);
+        setActiveSessionId("");
+      }
+    } catch (error) {
+      setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
+    } finally {
+      if (showLoader) {
         setLoading(false);
       }
     }
+  }
 
-    void load();
+  useEffect(() => {
+    if (!id) return;
+    void loadChat(true);
   }, [id, t]);
+
+  useEffect(() => {
+    if (!chatProcessing) {
+      if (pollingRef.current) {
+        window.clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      return;
+    }
+
+    if (pollingRef.current || !id) return;
+
+    pollingRef.current = window.setInterval(() => {
+      void loadChat(false);
+    }, STATUS_POLL_INTERVAL_MS);
+
+    return () => {
+      if (pollingRef.current) {
+        window.clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [chatProcessing, id]);
+
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        window.clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, []);
 
   async function handleSelectSession(sessionId: string) {
     if (!id) return;
@@ -340,7 +405,7 @@ export function DocumentChatPage() {
   }
 
   async function handleSend() {
-    if (!id || !prompt.trim()) return;
+    if (!id || !prompt.trim() || !chatReady) return;
 
     const userMessage = prompt.trim();
     const tempMessageId = `temp-${Date.now()}`;
@@ -514,6 +579,13 @@ export function DocumentChatPage() {
             </div>
           </div>
 
+          {chatProcessing ? (
+            <div className="form-alert">
+              <Loader2 size={16} className="spin" />
+              <span>{t("documents.processingNow")}</span>
+            </div>
+          ) : null}
+
           {actionError ? (
             <div className="form-alert form-alert--error">
               <AlertCircle size={16} />
@@ -613,6 +685,7 @@ export function DocumentChatPage() {
               }}
               rows={3}
               placeholder={t("chat.placeholder")}
+              disabled={!chatReady || sending}
             />
 
             <button

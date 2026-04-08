@@ -63,10 +63,11 @@ export const ua = {
     searchPlaceholder: "Пошук документів...",
     delete: "Видалити",
     status: {
-      pending: "Очікує",
+      uploaded: "Завантажено",
+      queued: "У черзі",
       processing: "Обробка",
-      completed: "Завершено",
       ready: "Готово",
+      failed: "Помилка",
       unknown: "Невідомо",
     },
     processingNow: "Зараз обробляється",

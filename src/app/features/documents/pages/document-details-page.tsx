@@ -8,11 +8,14 @@ import {
 } from "@/app/api/documents.api";
 import { DeleteConfirmModal } from "@/app/components/feedback/delete-confirm-modal";
 import {
+  canUseDocumentAi,
   getDocumentDisplayName,
   getDocumentMimeValue,
   getDocumentSizeLabel,
   getDocumentStatusLabel,
   getDocumentTypeLabel,
+  isDocumentProcessing,
+  normalizeDocumentStatus,
 } from "@/app/lib/document";
 import i18n from "@/i18n";
 import {
@@ -30,7 +33,7 @@ import {
   Trash2,
   WandSparkles,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import "../../../styles/document-details-page.css";
@@ -42,10 +45,13 @@ type DocumentDto = {
   name?: string;
   status?: number | string;
   createdAt?: string;
+  uploadedAtUtc?: string;
+  processedAtUtc?: string;
   contentType?: string;
   mimeType?: string;
   sizeInBytes?: number;
   fileSizeInBytes?: number;
+  errorMessage?: string | null;
 };
 
 type ExtractionItem = {
@@ -53,7 +59,10 @@ type ExtractionItem = {
   extractionType?: string;
   createdAt?: string;
   resultJson?: string;
+  jsonResult?: string;
 };
+
+const STATUS_POLL_INTERVAL_MS = 3000;
 
 function normalizeLanguage(language?: string) {
   if (!language) return "en";
@@ -63,12 +72,24 @@ function normalizeLanguage(language?: string) {
 }
 
 function statusClass(status: number | string | undefined) {
-  const value = getDocumentStatusLabel(status);
+  const value = normalizeDocumentStatus(status);
 
-  if (value === "Pending") return "doc-status doc-status--pending";
-  if (value === "Processing") return "doc-status doc-status--processing";
-  if (value === "Completed") return "doc-status doc-status--completed";
-  if (value === "Ready") return "doc-status doc-status--ready";
+  if (value === "uploaded" || value === "queued") {
+    return "doc-status doc-status--pending";
+  }
+
+  if (value === "processing") {
+    return "doc-status doc-status--processing";
+  }
+
+  if (value === "ready") {
+    return "doc-status doc-status--ready";
+  }
+
+  if (value === "failed") {
+    return "doc-status doc-status--failed";
+  }
+
   return "doc-status doc-status--unknown";
 }
 
@@ -125,7 +146,9 @@ function getApiErrorMessage(error: unknown, fallback: string) {
 
       const nestedMessage =
         record.message ??
+        record.Message ??
         record.error ??
+        record.errorMessage ??
         record.title ??
         record.detail ??
         record.errors;
@@ -210,38 +233,81 @@ export function DocumentDetailsPage() {
   const [extractType, setExtractType] = useState("structured");
   const [actionError, setActionError] = useState("");
 
+  const pollingRef = useRef<number | null>(null);
+
   const currentLanguage = normalizeLanguage(i18n.language);
 
-  useEffect(() => {
+  async function loadDocument(showLoader = false) {
     if (!id) return;
 
-    async function load() {
+    if (showLoader) {
       setLoading(true);
+    }
 
-      try {
-        setActionError("");
+    try {
+      setActionError("");
 
-        const [doc, docStatus, docExtractions] = await Promise.all([
-          getDocument(id ?? ""),
-          getDocumentStatus(id ?? ""),
-          getExtractions(id ?? "").catch(() => []),
-        ]);
+      const [doc, docStatus, docExtractions] = await Promise.all([
+        getDocument(id),
+        getDocumentStatus(id),
+        getExtractions(id).catch(() => []),
+      ]);
 
-        setDocumentItem(doc);
-        setStatus(docStatus?.status ?? docStatus);
-        setExtractions(Array.isArray(docExtractions) ? docExtractions : []);
-      } catch (error) {
-        setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
-      } finally {
+      setDocumentItem(doc);
+      setStatus(docStatus?.status ?? docStatus);
+      setExtractions(Array.isArray(docExtractions) ? docExtractions : []);
+    } catch (error) {
+      setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
+    } finally {
+      if (showLoader) {
         setLoading(false);
       }
     }
+  }
 
-    void load();
+  useEffect(() => {
+    if (!id) return;
+    void loadDocument(true);
   }, [id, t]);
 
+  const processing = useMemo(() => isDocumentProcessing(status), [status]);
+  const aiReady = useMemo(() => canUseDocumentAi(status), [status]);
+
+  useEffect(() => {
+    if (!processing) {
+      if (pollingRef.current) {
+        window.clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      return;
+    }
+
+    if (pollingRef.current || !id) return;
+
+    pollingRef.current = window.setInterval(() => {
+      void loadDocument(false);
+    }, STATUS_POLL_INTERVAL_MS);
+
+    return () => {
+      if (pollingRef.current) {
+        window.clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [processing, id]);
+
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        window.clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, []);
+
   async function handleSummarize() {
-    if (!id) return;
+    if (!id || !aiReady) return;
+
     setSummaryLoading(true);
     setActionError("");
 
@@ -261,7 +327,8 @@ export function DocumentDetailsPage() {
   }
 
   async function handleExtract() {
-    if (!id) return;
+    if (!id || !aiReady) return;
+
     setExtractLoading(true);
     setActionError("");
 
@@ -360,6 +427,13 @@ export function DocumentDetailsPage() {
           </div>
         </div>
 
+        {processing ? (
+          <div className="form-alert">
+            <Loader2 size={16} className="spin" />
+            <span>{t("documents.processingNow")}</span>
+          </div>
+        ) : null}
+
         {actionError ? (
           <div className="form-alert form-alert--error">
             <AlertCircle size={16} />
@@ -398,7 +472,7 @@ export function DocumentDetailsPage() {
             type="button"
             onClick={() => void handleSummarize()}
             className="detail-action detail-action--primary"
-            disabled={summaryLoading}
+            disabled={summaryLoading || !aiReady}
           >
             {summaryLoading ? (
               <Loader2 size={18} className="spin" />
@@ -471,6 +545,7 @@ export function DocumentDetailsPage() {
                 value={extractType}
                 onChange={(e) => setExtractType(e.target.value)}
                 placeholder="structured"
+                disabled={!aiReady || extractLoading}
               />
             </div>
 
@@ -481,6 +556,7 @@ export function DocumentDetailsPage() {
                 onChange={(e) => setExtractFields(e.target.value)}
                 rows={5}
                 placeholder="name,email,skills"
+                disabled={!aiReady || extractLoading}
               />
             </div>
 
@@ -488,7 +564,7 @@ export function DocumentDetailsPage() {
               type="button"
               onClick={() => void handleExtract()}
               className="detail-action detail-action--primary detail-action--full"
-              disabled={extractLoading}
+              disabled={extractLoading || !aiReady}
             >
               {extractLoading ? (
                 <Loader2 size={18} className="spin" />
@@ -532,8 +608,10 @@ export function DocumentDetailsPage() {
                   <span className="history-card__id">{item.id}</span>
                 </div>
 
-                {item.resultJson ? (
-                  <pre className="history-card__result">{item.resultJson}</pre>
+                {item.resultJson || item.jsonResult ? (
+                  <pre className="history-card__result">
+                    {item.resultJson ?? item.jsonResult}
+                  </pre>
                 ) : (
                   <div className="history-card__empty">
                     {t("details.extractionItem")}

@@ -62,10 +62,11 @@ export const en = {
     searchPlaceholder: "Search documents...",
     delete: "Delete",
     status: {
-      pending: "Pending",
+      uploaded: "Uploaded",
+      queued: "Queued",
       processing: "Processing",
-      completed: "Completed",
       ready: "Ready",
+      failed: "Failed",
       unknown: "Unknown",
     },
     processingNow: "Processing now",
