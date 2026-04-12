@@ -40,7 +40,6 @@ import {
   Loader2,
   MessageSquareText,
   PencilLine,
-  Plus,
   RefreshCcw,
   Search,
   Sparkles,
@@ -310,11 +309,12 @@ function FolderTreeNode({
   const isSelected = selectedTarget === folder.id;
   const hasChildren = folder.children.length > 0;
   const label = getFolderDisplayName(folder, language);
+  const count = getDescendantCount(folder);
 
   return (
     <li className="folder-tree__node">
       <div
-        className={`folder-tree__item ${isSelected ? "folder-tree__item--active" : ""}`}
+        className={`folder-row ${isSelected ? "folder-row--active" : ""}`}
         onClick={() => onSelect(folder.id)}
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => {
@@ -324,7 +324,7 @@ function FolderTreeNode({
       >
         <button
           type="button"
-          className="folder-tree__toggle"
+          className="folder-row__toggle"
           onClick={(event) => {
             event.stopPropagation();
             if (hasChildren) {
@@ -340,28 +340,36 @@ function FolderTreeNode({
               <ChevronRight size={14} />
             )
           ) : (
-            <span className="folder-tree__toggle-placeholder" />
+            <span className="folder-row__toggle-placeholder" />
           )}
         </button>
 
-        <div className="folder-tree__item-main">
+        <div className="folder-row__icon">
           {isExpanded ? <FolderOpen size={16} /> : <Folder size={16} />}
-          <span>{label}</span>
         </div>
 
-        <div className="folder-tree__item-meta">
-          {folder.isSystemGenerated ? (
-            <span className="folder-tree__system-badge">AI</span>
-          ) : null}
-          <span className="folder-tree__count">
-            {getDescendantCount(folder)}
+        <div className="folder-row__main">
+          <span className="folder-row__name" title={label}>
+            {label}
           </span>
+
+          <div className="folder-row__meta">
+            <span className="folder-row__count">{count}</span>
+
+            {folder.isSystemGenerated ? (
+              <span className="folder-row__badge folder-row__badge--ai">
+                AI
+              </span>
+            ) : (
+              <span className="folder-row__badge">Manual</span>
+            )}
+          </div>
         </div>
 
-        <div className="folder-tree__actions">
+        <div className="folder-row__actions">
           <button
             type="button"
-            className="folder-tree__action"
+            className="folder-row__action"
             onClick={(event) => {
               event.stopPropagation();
               onCreateChild(folder.id);
@@ -370,9 +378,10 @@ function FolderTreeNode({
           >
             <FolderPlus size={14} />
           </button>
+
           <button
             type="button"
-            className="folder-tree__action"
+            className="folder-row__action"
             onClick={(event) => {
               event.stopPropagation();
               onEdit(folder);
@@ -381,9 +390,10 @@ function FolderTreeNode({
           >
             <PencilLine size={14} />
           </button>
+
           <button
             type="button"
-            className="folder-tree__action folder-tree__action--danger"
+            className="folder-row__action folder-row__action--danger"
             onClick={(event) => {
               event.stopPropagation();
               onDelete(folder);
@@ -772,9 +782,6 @@ export function DocumentsPage() {
   const processingCount = documents.filter((doc) =>
     isDocumentProcessing(doc.status),
   ).length;
-  const failedCount = documents.filter((doc) =>
-    isDocumentFailed(doc.status),
-  ).length;
   const uncategorizedCount = documents.filter((doc) => !doc.folderId).length;
   const folderCount = countAllFolders(folders);
 
@@ -981,41 +988,50 @@ export function DocumentsPage() {
                 })
               }
             >
-              <Plus size={16} />
+              <FolderPlus size={16} />
+              <span>{t("documents.createFolder")}</span>
             </button>
           </div>
 
           <div className="folder-tree">
-            <button
-              type="button"
-              className={`folder-tree__root ${selectedTarget === "all" ? "folder-tree__root--active" : ""}`}
-              onClick={() => setSelectedTarget("all")}
-            >
-              <div className="folder-tree__root-main">
-                <FolderOpen size={16} />
-                <span>{t("documents.tree.allDocuments")}</span>
-              </div>
-              <span className="folder-tree__count">{documents.length}</span>
-            </button>
+            <div className="folder-tree__roots">
+              <button
+                type="button"
+                className={`folder-root ${selectedTarget === "all" ? "folder-root--active" : ""}`}
+                onClick={() => setSelectedTarget("all")}
+              >
+                <div className="folder-root__icon">
+                  <FolderOpen size={16} />
+                </div>
 
-            <button
-              type="button"
-              className={`folder-tree__root ${selectedTarget === "uncategorized" ? "folder-tree__root--active" : ""}`}
-              onClick={() => setSelectedTarget("uncategorized")}
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={(event) => {
-                event.preventDefault();
-                if (dragDocumentId) {
-                  void handleMoveDocument(dragDocumentId, null);
-                }
-              }}
-            >
-              <div className="folder-tree__root-main">
-                <FileText size={16} />
-                <span>{t("documents.tree.uncategorized")}</span>
-              </div>
-              <span className="folder-tree__count">{uncategorizedCount}</span>
-            </button>
+                <div className="folder-root__content">
+                  <strong>{t("documents.tree.allDocuments")}</strong>
+                  <span>{documents.length} items</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className={`folder-root ${selectedTarget === "uncategorized" ? "folder-root--active" : ""}`}
+                onClick={() => setSelectedTarget("uncategorized")}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  if (dragDocumentId) {
+                    void handleMoveDocument(dragDocumentId, null);
+                  }
+                }}
+              >
+                <div className="folder-root__icon">
+                  <FileText size={16} />
+                </div>
+
+                <div className="folder-root__content">
+                  <strong>{t("documents.tree.uncategorized")}</strong>
+                  <span>{uncategorizedCount} items</span>
+                </div>
+              </button>
+            </div>
 
             <ul className="folder-tree__list">
               {folders.map((folder) => (
