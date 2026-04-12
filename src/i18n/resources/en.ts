@@ -11,6 +11,7 @@ export const en = {
     chat: "AI Chat",
     account: "Account",
     adminUsers: "Admin users",
+    documentStructure: "Document structure",
   },
   common: {
     logout: "Logout",
@@ -40,7 +41,56 @@ export const en = {
     uploadReached:
       "You have already reached your monthly document upload limit.",
   },
+  folderChat: {
+    title: "Folder AI conversation",
+    subtitle:
+      "Ask questions about all processed documents inside this folder and its subfolders.",
+    contextAware: "Context-aware chat for the whole folder.",
+    sessions: "Folder chat sessions",
+    session: "Session",
+    noSessions: "No saved folder sessions yet. Send your first question.",
+    empty: "Start by asking about the documents in this folder.",
+    thinking: "Thinking...",
+    placeholder:
+      "Ask about invoices, CVs, contracts or all files in this folder...",
+    send: "Send",
+    you: "You",
+    assistant: "Assistant",
+    loadError: "Failed to load folder chat.",
+    loadMessagesError: "Failed to load folder messages.",
+    sendError: "Failed to send the message.",
+    totalDocuments: "Wszystkie dokumenty",
+    readyDocuments: "Gotowe dla AI",
+    processingBannerTitle: "Część dokumentów nadal się przetwarza",
+    processingBannerDescription:
+      "Aktualnie {{count}} dokumentów w tym folderze jest jeszcze przetwarzanych. Chat odpowiada tylko na podstawie gotowych dokumentów.",
+  },
+  documentStructurePage: {
+    kicker: "Structure overview",
+    title: "Document structure",
+    subtitle:
+      "Browse folders, subfolders, and documents in one tree and open the file preview on the right side.",
+    treeKicker: "Structure",
+    treeTitle: "Folders and documents",
+    searchPlaceholder: "Search folder or document...",
+    uncategorized: "Uncategorized",
+    emptyTreeTitle: "No results",
+    emptyTreeSubtitle: "No folders or documents matched your search.",
+    previewKicker: "File preview",
+    openOriginal: "Open original",
+    loadingPreview: "Loading preview...",
+    previewUnavailableTitle: "Preview unavailable",
+    previewUnavailableSubtitle: "This file type cannot be shown inline.",
+    emptyPreviewTitle: "Select a document",
+    emptyPreviewSubtitle:
+      "When you click a document, its preview will appear on the right.",
+  },
   documents: {
+    batchUploadTitle: "Drop files or click to upload",
+    batchUploadSubtitle: "Upload one file or a whole package at once",
+    uploadError: "Upload failed. Please try again.",
+    openFolderChat: "Chat with this folder",
+    newBadge: "New",
     heroBadge: "Smart document workflow",
     title: "Turn files into answers, summaries and structured insights.",
     subtitle:

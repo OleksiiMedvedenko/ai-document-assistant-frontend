@@ -11,6 +11,7 @@ import {
   getDocuments,
   moveDocumentToFolder,
   uploadDocument,
+  uploadDocuments,
 } from "@/app/api/documents.api";
 import { FolderEditorModal } from "@/app/components/documents/folder-editor-modal";
 import { DeleteConfirmModal } from "@/app/components/feedback/delete-confirm-modal";
@@ -611,7 +612,9 @@ export function DocumentsPage() {
     };
   }, []);
 
-  async function handleUpload(file: File) {
+  async function handleUploadMany(files: File[]) {
+    if (!files.length) return;
+
     setUploading(true);
     setActionError("");
 
@@ -621,12 +624,21 @@ export function DocumentsPage() {
           ? selectedTarget
           : null;
 
-      await uploadDocument({
-        file,
-        folderId,
-        smartOrganize,
-        allowSystemFolderCreation: allowAutoCreateFolders,
-      });
+      if (files.length === 1) {
+        await uploadDocument({
+          file: files[0],
+          folderId,
+          smartOrganize,
+          allowSystemFolderCreation: allowAutoCreateFolders,
+        });
+      } else {
+        await uploadDocuments({
+          files,
+          folderId,
+          smartOrganize,
+          allowSystemFolderCreation: allowAutoCreateFolders,
+        });
+      }
 
       await loadDocumentsAndFolders(false);
 
@@ -640,6 +652,10 @@ export function DocumentsPage() {
     } finally {
       setUploading(false);
     }
+  }
+
+  async function handleUpload(file: File) {
+    await handleUploadMany([file]);
   }
 
   async function handleDeleteDocument() {
@@ -801,6 +817,9 @@ export function DocumentsPage() {
 
   const deleteModalOpen = deleteDocumentId !== null || folderToDelete !== null;
 
+  const canOpenFolderChat =
+    selectedTarget !== "all" && selectedTarget !== "uncategorized";
+
   return (
     <div className="documents-page">
       <section className="documents-hero surface-card">
@@ -824,11 +843,12 @@ export function DocumentsPage() {
             <label className="documents-upload">
               <input
                 type="file"
+                multiple
                 className="documents-upload__input"
                 onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) {
-                    void handleUpload(file);
+                  const files = Array.from(event.target.files ?? []);
+                  if (files.length > 0) {
+                    void handleUploadMany(files);
                     event.currentTarget.value = "";
                   }
                 }}
@@ -842,9 +862,15 @@ export function DocumentsPage() {
                 <strong>
                   {uploading
                     ? t("documents.uploading")
-                    : t("documents.uploadTitle")}
+                    : t("documents.batchUploadTitle", {
+                        defaultValue: t("documents.uploadTitle"),
+                      })}
                 </strong>
-                <span>{t("documents.uploadSubtitle")}</span>
+                <span>
+                  {t("documents.batchUploadSubtitle", {
+                    defaultValue: t("documents.uploadSubtitle"),
+                  })}
+                </span>
                 <small>
                   {t("documents.uploadTarget")}{" "}
                   <strong>{currentFolderLabel}</strong>
@@ -1088,13 +1114,29 @@ export function DocumentsPage() {
               </p>
             </div>
 
-            <div className="documents-search">
-              <Search size={18} />
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder={t("documents.searchPlaceholder")}
-              />
+            <div className="documents-library__header-actions">
+              {canOpenFolderChat ? (
+                <Link
+                  to={`/folders/${selectedTarget}/chat`}
+                  className="documents-folder-chat-button"
+                >
+                  <MessageSquareText size={16} />
+                  <span>
+                    {t("documents.openFolderChat", {
+                      defaultValue: t("nav.chat"),
+                    })}
+                  </span>
+                </Link>
+              ) : null}
+
+              <div className="documents-search">
+                <Search size={18} />
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder={t("documents.searchPlaceholder")}
+                />
+              </div>
             </div>
           </div>
 
@@ -1151,7 +1193,16 @@ export function DocumentsPage() {
                         </div>
 
                         <div className="document-card__file-info">
-                          <h3>{getDocumentDisplayName(doc)}</h3>
+                          <h3>
+                            {getDocumentDisplayName(doc)}
+                            {doc.isNew ? (
+                              <span className="document-card__new-badge">
+                                {t("documents.newBadge", {
+                                  defaultValue: "New",
+                                })}
+                              </span>
+                            ) : null}
+                          </h3>
                           <p>{getDocumentTypeLabel(doc)}</p>
                         </div>
                       </div>

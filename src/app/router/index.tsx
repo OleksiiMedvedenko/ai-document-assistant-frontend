@@ -6,8 +6,10 @@ import { AdminUsersPage } from "../features/admin/pages/admin-users-page";
 import { LoginPage } from "../features/auth/pages/login-page";
 import { RegisterPage } from "../features/auth/pages/register-page";
 import { DocumentChatPage } from "../features/chat/pages/document-chat-page";
+import { FolderChatPage } from "../features/chat/pages/folder-chat-page";
 import { ComparePage } from "../features/compare/pages/compare-page";
 import { DocumentDetailsPage } from "../features/documents/pages/document-details-page";
+import DocumentStructurePage from "../features/documents/pages/document-structure-page";
 import { DocumentsPage } from "../features/documents/pages/documents-page";
 import { HomePage } from "../features/home/pages/home-page";
 
@@ -35,8 +37,10 @@ export const router = createBrowserRouter([
       { path: "/documents", element: <DocumentsPage /> },
       { path: "/documents/:id", element: <DocumentDetailsPage /> },
       { path: "/documents/:id/chat", element: <DocumentChatPage /> },
+      { path: "/folders/:folderId/chat", element: <FolderChatPage /> },
       { path: "/compare", element: <ComparePage /> },
       { path: "/account", element: <AccountPage /> },
+      { path: "/document-structure", element: <DocumentStructurePage /> },
       {
         path: "/admin/users",
         element: (
