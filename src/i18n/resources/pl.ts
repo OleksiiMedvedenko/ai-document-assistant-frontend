@@ -12,6 +12,7 @@ export const pl = {
     chat: "Czat AI",
     account: "Konto",
     adminUsers: "Użytkownicy",
+    documentStructure: "Struktura dokumentów",
   },
   common: {
     logout: "Wyloguj",
@@ -63,6 +64,28 @@ export const pl = {
     processingBannerTitle: "Część dokumentów nadal się przetwarza",
     processingBannerDescription:
       "Aktualnie {{count}} dokumentów w tym folderze jest jeszcze przetwarzanych. Chat odpowiada tylko na podstawie gotowych dokumentów.",
+  },
+  documentStructurePage: {
+    kicker: "Przegląd struktury",
+    title: "Struktura dokumentów",
+    subtitle:
+      "Przeglądaj foldery, podfoldery i dokumenty w jednym drzewie oraz otwieraj podgląd pliku po prawej stronie.",
+    treeKicker: "Struktura",
+    treeTitle: "Foldery i dokumenty",
+    searchPlaceholder: "Szukaj folderu lub dokumentu...",
+    uncategorized: "Bez folderu",
+    emptyTreeTitle: "Brak wyników",
+    emptyTreeSubtitle:
+      "Nie znaleziono folderów ani dokumentów dla tego wyszukiwania.",
+    previewKicker: "Podgląd pliku",
+    openOriginal: "Otwórz oryginał",
+    loadingPreview: "Ładowanie podglądu...",
+    previewUnavailableTitle: "Podgląd niedostępny",
+    previewUnavailableSubtitle:
+      "Dla tego typu pliku nie można wyświetlić osadzonego podglądu.",
+    emptyPreviewTitle: "Wybierz dokument",
+    emptyPreviewSubtitle:
+      "Po kliknięciu dokumentu po prawej stronie pojawi się jego podgląd.",
   },
   documents: {
     batchUploadTitle: "Upuść pliki albo kliknij, aby przesłać",

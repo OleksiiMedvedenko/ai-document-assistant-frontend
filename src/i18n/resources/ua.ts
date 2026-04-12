@@ -12,6 +12,7 @@ export const ua = {
     chat: "AI чат",
     account: "Акаунт",
     adminUsers: "Користувачі",
+    documentStructure: "Структура документів",
   },
   common: {
     logout: "Вийти",
@@ -64,6 +65,27 @@ export const ua = {
     processingBannerTitle: "Деякі документи ще обробляються",
     processingBannerDescription:
       "Зараз {{count}} документів у цій папці ще обробляються. Чат відповідає лише на основі документів, які вже готові.",
+  },
+  documentStructurePage: {
+    kicker: "Огляд структури",
+    title: "Структура документів",
+    subtitle:
+      "Переглядайте папки, підпапки та документи в одному дереві й відкривайте попередній перегляд файлу праворуч.",
+    treeKicker: "Структура",
+    treeTitle: "Папки та документи",
+    searchPlaceholder: "Пошук папки або документа...",
+    uncategorized: "Без папки",
+    emptyTreeTitle: "Немає результатів",
+    emptyTreeSubtitle: "Не знайдено папок або документів для цього пошуку.",
+    previewKicker: "Попередній перегляд файлу",
+    openOriginal: "Відкрити оригінал",
+    loadingPreview: "Завантаження попереднього перегляду...",
+    previewUnavailableTitle: "Попередній перегляд недоступний",
+    previewUnavailableSubtitle:
+      "Для цього типу файлу неможливо показати вбудований перегляд.",
+    emptyPreviewTitle: "Виберіть документ",
+    emptyPreviewSubtitle:
+      "Після натискання на документ його попередній перегляд з’явиться праворуч.",
   },
   documents: {
     batchUploadTitle: "Перетягніть файли або натисніть, щоб завантажити",

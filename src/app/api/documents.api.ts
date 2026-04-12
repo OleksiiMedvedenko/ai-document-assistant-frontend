@@ -43,6 +43,15 @@ export type UploadDocumentsResult = {
   documents: DocumentItem[];
 };
 
+export type DocumentPreviewMetaDto = {
+  documentId: string;
+  fileName: string;
+  contentType: string;
+  previewKind: "pdf" | "text" | "html" | "download" | "browser";
+  canInlinePreview: boolean;
+  message?: string | null;
+};
+
 export async function getDocuments(folderId?: string | null) {
   const { data } = await apiClient.get("/api/documents", {
     params: folderId ? { folderId } : undefined,
@@ -172,4 +181,30 @@ export async function compareDocuments(
 
 export async function deleteDocument(id: string) {
   await apiClient.delete(`/api/documents/${id}`);
+}
+
+export async function getDocumentPreviewMeta(documentId: string) {
+  const { data } = await apiClient.get(
+    `/api/documents/${documentId}/preview-meta`,
+  );
+  return data as DocumentPreviewMetaDto;
+}
+
+export async function getDocumentPreviewFileBlob(documentId: string) {
+  const { data } = await apiClient.get(
+    `/api/documents/${documentId}/preview-file`,
+    {
+      responseType: "blob",
+    },
+  );
+
+  return data as Blob;
+}
+
+export async function getDocumentOriginalFileBlob(documentId: string) {
+  const { data } = await apiClient.get(`/api/documents/${documentId}/content`, {
+    responseType: "blob",
+  });
+
+  return data as Blob;
 }

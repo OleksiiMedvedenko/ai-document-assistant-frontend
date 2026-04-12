@@ -11,6 +11,7 @@ export const en = {
     chat: "AI Chat",
     account: "Account",
     adminUsers: "Admin users",
+    documentStructure: "Document structure",
   },
   common: {
     logout: "Logout",
@@ -63,6 +64,26 @@ export const en = {
     processingBannerTitle: "Część dokumentów nadal się przetwarza",
     processingBannerDescription:
       "Aktualnie {{count}} dokumentów w tym folderze jest jeszcze przetwarzanych. Chat odpowiada tylko na podstawie gotowych dokumentów.",
+  },
+  documentStructurePage: {
+    kicker: "Structure overview",
+    title: "Document structure",
+    subtitle:
+      "Browse folders, subfolders, and documents in one tree and open the file preview on the right side.",
+    treeKicker: "Structure",
+    treeTitle: "Folders and documents",
+    searchPlaceholder: "Search folder or document...",
+    uncategorized: "Uncategorized",
+    emptyTreeTitle: "No results",
+    emptyTreeSubtitle: "No folders or documents matched your search.",
+    previewKicker: "File preview",
+    openOriginal: "Open original",
+    loadingPreview: "Loading preview...",
+    previewUnavailableTitle: "Preview unavailable",
+    previewUnavailableSubtitle: "This file type cannot be shown inline.",
+    emptyPreviewTitle: "Select a document",
+    emptyPreviewSubtitle:
+      "When you click a document, its preview will appear on the right.",
   },
   documents: {
     batchUploadTitle: "Drop files or click to upload",

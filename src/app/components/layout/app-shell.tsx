@@ -2,6 +2,7 @@ import { LanguageSwitcher } from "@/app/components/layout/language-switcher";
 import { useAuthStore } from "@/app/store/auth.store";
 import {
   FileText,
+  FolderTree,
   GitCompareArrows,
   Home,
   LogOut,
@@ -41,6 +42,12 @@ export function AppShell() {
           !location.pathname.includes("/chat"),
       },
       {
+        to: "/document-structure",
+        label: t("nav.documentStructure"),
+        icon: FolderTree,
+        active: location.pathname.startsWith("/document-structure"),
+      },
+      {
         to: "/compare",
         label: t("nav.compare"),
         icon: GitCompareArrows,
@@ -74,6 +81,8 @@ export function AppShell() {
 
   const pageTitle = useMemo(() => {
     if (location.pathname === "/home") return t("nav.home");
+    if (location.pathname.startsWith("/document-structure"))
+      return t("nav.documentStructure");
     if (location.pathname.startsWith("/compare")) return t("nav.compare");
     if (location.pathname.includes("/chat")) return t("nav.chat");
     if (location.pathname.startsWith("/account")) return t("nav.account");

@@ -9,6 +9,7 @@ import { DocumentChatPage } from "../features/chat/pages/document-chat-page";
 import { FolderChatPage } from "../features/chat/pages/folder-chat-page";
 import { ComparePage } from "../features/compare/pages/compare-page";
 import { DocumentDetailsPage } from "../features/documents/pages/document-details-page";
+import DocumentStructurePage from "../features/documents/pages/document-structure-page";
 import { DocumentsPage } from "../features/documents/pages/documents-page";
 import { HomePage } from "../features/home/pages/home-page";
 
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
       { path: "/folders/:folderId/chat", element: <FolderChatPage /> },
       { path: "/compare", element: <ComparePage /> },
       { path: "/account", element: <AccountPage /> },
+      { path: "/document-structure", element: <DocumentStructurePage /> },
       {
         path: "/admin/users",
         element: (
