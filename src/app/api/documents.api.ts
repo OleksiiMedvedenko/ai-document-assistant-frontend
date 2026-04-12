@@ -1,7 +1,37 @@
 import { apiClient } from "./client";
 
+export type DocumentItem = {
+  id: string;
+  fileName?: string;
+  originalFileName?: string;
+  name?: string;
+  status?: number | string;
+  createdAt?: string;
+  uploadedAtUtc?: string;
+  processedAtUtc?: string;
+  contentType?: string;
+  mimeType?: string;
+  sizeInBytes?: number;
+  errorMessage?: string | null;
+  folderId?: string | null;
+  folderName?: string | null;
+  folderNamePl?: string | null;
+  folderNameEn?: string | null;
+  folderNameUa?: string | null;
+  folderClassificationStatus?: string | null;
+  folderClassificationConfidence?: number | null;
+  wasFolderAutoAssigned?: boolean;
+};
+
+export type UploadDocumentPayload = {
+  file: File;
+  folderId?: string | null;
+  smartOrganize?: boolean;
+  allowSystemFolderCreation?: boolean;
+};
+
 export async function getDocuments() {
-  const { data } = await apiClient.get("/api/documents");
+  const { data } = await apiClient.get<DocumentItem[]>("/api/documents");
   return data;
 }
 
@@ -27,14 +57,35 @@ export async function getExtractionById(id: string, extractionId: string) {
   return data;
 }
 
-export async function uploadDocument(file: File) {
+export async function uploadDocument(payload: UploadDocumentPayload) {
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append("file", payload.file);
+
+  if (payload.folderId) {
+    formData.append("folderId", payload.folderId);
+  }
+
+  formData.append("smartOrganize", String(payload.smartOrganize ?? true));
+  formData.append(
+    "allowSystemFolderCreation",
+    String(payload.allowSystemFolderCreation ?? true),
+  );
 
   const { data } = await apiClient.post("/api/documents/upload", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
+  });
+
+  return data;
+}
+
+export async function moveDocumentToFolder(
+  id: string,
+  folderId?: string | null,
+) {
+  const { data } = await apiClient.patch(`/api/documents/${id}/folder`, {
+    folderId: folderId ?? null,
   });
 
   return data;

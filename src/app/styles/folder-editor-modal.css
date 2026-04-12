@@ -1,0 +1,219 @@
+.folder-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.folder-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(3, 8, 18, 0.72);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+
+.folder-modal__card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 720px);
+  border-radius: 28px;
+  padding: 22px;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(245, 158, 11, 0.08),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(124, 92, 255, 0.08),
+      transparent 24%
+    ),
+    linear-gradient(180deg, rgba(17, 24, 39, 0.98), rgba(15, 23, 42, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+}
+
+.folder-modal__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.folder-modal__icon,
+.folder-modal__heading-icon {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #f59e0b, #fb923c);
+  box-shadow: 0 10px 22px rgba(245, 158, 11, 0.22);
+}
+
+.folder-modal__icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+}
+
+.folder-modal__heading-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.folder-modal__close {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.82);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
+    opacity 180ms ease;
+}
+
+.folder-modal__close:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.folder-modal__close:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.folder-modal__content {
+  margin-top: 18px;
+}
+
+.folder-modal__heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.folder-modal__heading h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.3rem;
+  line-height: 1.2;
+}
+
+.folder-modal__heading p {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.65;
+}
+
+.folder-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.folder-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.folder-modal__field span {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.folder-modal__field input {
+  min-height: 48px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  outline: none;
+}
+
+.folder-modal__field input:focus {
+  border-color: rgba(245, 158, 11, 0.34);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+}
+
+.folder-modal__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.folder-modal__button {
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease;
+}
+
+.folder-modal__button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.folder-modal__button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.folder-modal__button--secondary {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.folder-modal__button--primary {
+  border: none;
+  background: linear-gradient(135deg, #f59e0b, #fb923c);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(245, 158, 11, 0.22);
+}
+
+.folder-modal__spinner {
+  animation: folder-modal-spin 1s linear infinite;
+}
+
+@keyframes folder-modal-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 720px) {
+  .folder-modal__card {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .folder-modal__grid,
+  .folder-modal__actions {
+    grid-template-columns: 1fr;
+  }
+}
