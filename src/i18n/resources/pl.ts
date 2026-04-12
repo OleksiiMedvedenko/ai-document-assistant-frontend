@@ -86,6 +86,11 @@ export const pl = {
     emptyPreviewTitle: "Wybierz dokument",
     emptyPreviewSubtitle:
       "Po kliknięciu dokumentu po prawej stronie pojawi się jego podgląd.",
+    openChat: "Przejdź do czatu",
+    openFolderChat: "Przejdź do czatu folderu",
+    folderSelectedTitle: "Wybrano folder",
+    folderSelectedSubtitle:
+      "Możesz przejść do rozmowy z całym folderem albo wybrać dokument do podglądu.",
   },
   documents: {
     batchUploadTitle: "Upuść pliki albo kliknij, aby przesłać",

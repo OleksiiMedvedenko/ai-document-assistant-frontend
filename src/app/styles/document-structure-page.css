@@ -400,6 +400,12 @@
   animation: spin 0.9s linear infinite;
 }
 
+.document-structure__action--secondary {
+  background: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

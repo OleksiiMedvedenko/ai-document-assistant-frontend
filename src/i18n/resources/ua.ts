@@ -86,6 +86,11 @@ export const ua = {
     emptyPreviewTitle: "Виберіть документ",
     emptyPreviewSubtitle:
       "Після натискання на документ його попередній перегляд з’явиться праворуч.",
+    openChat: "Перейти до чату",
+    openFolderChat: "Перейти до чату папки",
+    folderSelectedTitle: "Папку вибрано",
+    folderSelectedSubtitle:
+      "Ви можете відкрити чат для всієї папки або вибрати документ для перегляду.",
   },
   documents: {
     batchUploadTitle: "Перетягніть файли або натисніть, щоб завантажити",

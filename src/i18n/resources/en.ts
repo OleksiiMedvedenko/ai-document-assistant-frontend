@@ -84,6 +84,11 @@ export const en = {
     emptyPreviewTitle: "Select a document",
     emptyPreviewSubtitle:
       "When you click a document, its preview will appear on the right.",
+    openChat: "Go to chat",
+    openFolderChat: "Go to folder chat",
+    folderSelectedTitle: "Folder selected",
+    folderSelectedSubtitle:
+      "You can open chat for the whole folder or choose a document to preview.",
   },
   documents: {
     batchUploadTitle: "Drop files or click to upload",
