@@ -16,7 +16,8 @@
 .documents-switch,
 .documents-settings__folder-button,
 .folder-root,
-.folder-row {
+.folder-row,
+.documents-folder-chat-button {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -414,6 +415,14 @@
   margin-bottom: 18px;
 }
 
+.documents-library__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .section-kicker {
   margin: 0 0 5px;
   font-size: 11px;
@@ -471,6 +480,30 @@
   outline: none;
   background: transparent;
   color: #fff;
+}
+
+.documents-folder-chat-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+  white-space: nowrap;
+}
+
+.documents-folder-chat-button:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(245, 158, 11, 0.24);
 }
 
 .folder-tree {
@@ -843,6 +876,22 @@
   font-size: 12px;
 }
 
+.document-card__new-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+  background: rgba(245, 158, 11, 0.14);
+  color: #ffd692;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
 .document-card__delete {
   width: 38px;
   height: 38px;
@@ -1098,8 +1147,16 @@
     align-items: stretch;
   }
 
+  .documents-library__header-actions {
+    justify-content: stretch;
+  }
+
   .documents-search {
     min-width: 0;
+    width: 100%;
+  }
+
+  .documents-folder-chat-button {
     width: 100%;
   }
 

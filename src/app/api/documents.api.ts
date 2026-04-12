@@ -21,6 +21,8 @@ export type DocumentItem = {
   folderClassificationStatus?: string | null;
   folderClassificationConfidence?: number | null;
   wasFolderAutoAssigned?: boolean;
+  isNew?: boolean;
+  processingProfile?: number | string;
 };
 
 export type UploadDocumentPayload = {
@@ -30,9 +32,23 @@ export type UploadDocumentPayload = {
   allowSystemFolderCreation?: boolean;
 };
 
-export async function getDocuments() {
-  const { data } = await apiClient.get<DocumentItem[]>("/api/documents");
-  return data;
+export type UploadDocumentsPayload = {
+  files: File[];
+  folderId?: string | null;
+  smartOrganize?: boolean;
+  allowSystemFolderCreation?: boolean;
+};
+
+export type UploadDocumentsResult = {
+  documents: DocumentItem[];
+};
+
+export async function getDocuments(folderId?: string | null) {
+  const { data } = await apiClient.get("/api/documents", {
+    params: folderId ? { folderId } : undefined,
+  });
+
+  return data as DocumentItem[];
 }
 
 export async function getDocument(id: string) {
@@ -54,6 +70,7 @@ export async function getExtractionById(id: string, extractionId: string) {
   const { data } = await apiClient.get(
     `/api/documents/${id}/extractions/${extractionId}`,
   );
+
   return data;
 }
 
@@ -77,7 +94,37 @@ export async function uploadDocument(payload: UploadDocumentPayload) {
     },
   });
 
-  return data;
+  return data as DocumentItem;
+}
+
+export async function uploadDocuments(payload: UploadDocumentsPayload) {
+  const formData = new FormData();
+
+  for (const file of payload.files) {
+    formData.append("files", file);
+  }
+
+  if (payload.folderId) {
+    formData.append("folderId", payload.folderId);
+  }
+
+  formData.append("smartOrganize", String(payload.smartOrganize ?? true));
+  formData.append(
+    "allowSystemFolderCreation",
+    String(payload.allowSystemFolderCreation ?? true),
+  );
+
+  const { data } = await apiClient.post(
+    "/api/documents/batch-upload",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+
+  return data as UploadDocumentsResult;
 }
 
 export async function moveDocumentToFolder(
@@ -88,13 +135,14 @@ export async function moveDocumentToFolder(
     folderId: folderId ?? null,
   });
 
-  return data;
+  return data as DocumentItem;
 }
 
 export async function summarizeDocument(id: string, language?: string) {
   const { data } = await apiClient.post(`/api/documents/${id}/summarize`, {
     language,
   });
+
   return data;
 }
 
@@ -106,6 +154,7 @@ export async function extractDocument(
     `/api/documents/${id}/extract`,
     payload,
   );
+
   return data;
 }
 
@@ -117,6 +166,7 @@ export async function compareDocuments(
     `/api/documents/${id}/compare`,
     payload,
   );
+
   return data;
 }
 
