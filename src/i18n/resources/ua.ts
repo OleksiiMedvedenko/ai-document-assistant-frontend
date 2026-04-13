@@ -91,6 +91,8 @@ export const ua = {
     folderSelectedTitle: "Папку вибрано",
     folderSelectedSubtitle:
       "Ви можете відкрити чат для всієї папки або вибрати документ для перегляду.",
+    treeSubtitle:
+      "Переглядайте папки та документи у зручнішому режимі структури.",
   },
   documents: {
     batchUploadTitle: "Перетягніть файли або натисніть, щоб завантажити",

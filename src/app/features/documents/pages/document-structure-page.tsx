@@ -24,6 +24,7 @@ import {
   Folder,
   FolderOpen,
   FolderTree,
+  Layers3,
   Loader2,
   Search,
   Sparkles,
@@ -252,6 +253,13 @@ function findFolderById(
   return null;
 }
 
+function countFolderChildren(folder: DocumentFolderItem): number {
+  return folder.children.reduce(
+    (sum, child) => sum + 1 + countFolderChildren(child),
+    0,
+  );
+}
+
 function TreeItem({
   node,
   expandedIds,
@@ -280,7 +288,7 @@ function TreeItem({
         }`}
         onClick={() => onSelectDocument(node.id)}
       >
-        <span className="structure-tree__icon">
+        <span className="structure-tree__icon structure-tree__icon--document">
           <FileText size={15} />
         </span>
 
@@ -321,7 +329,7 @@ function TreeItem({
           )}
         </span>
 
-        <span className="structure-tree__icon">
+        <span className="structure-tree__icon structure-tree__icon--folder">
           {isExpanded ? <FolderOpen size={16} /> : <Folder size={16} />}
         </span>
 
@@ -396,10 +404,16 @@ function PreviewPane({
               {t("documentStructurePage.previewKicker")}
             </p>
             <h2>{folderTitle}</h2>
+
             <div className="document-structure__viewer-meta">
               <span className="document-structure__viewer-chip">
                 <Folder size={14} />
                 {t("documents.treeTitle")}
+              </span>
+
+              <span className="document-structure__viewer-chip">
+                <Layers3 size={14} />
+                {countFolderChildren(selectedFolder)}
               </span>
             </div>
           </div>
@@ -416,10 +430,23 @@ function PreviewPane({
         </div>
 
         <div className="document-structure__viewer-body">
-          <div className="document-structure__empty">
-            <FolderTree size={24} />
-            <h3>{t("documentStructurePage.folderSelectedTitle")}</h3>
-            <p>{t("documentStructurePage.folderSelectedSubtitle")}</p>
+          <div className="document-structure__folder-state">
+            <div className="document-structure__folder-state-icon">
+              <FolderOpen size={28} />
+            </div>
+
+            <div className="document-structure__folder-state-copy">
+              <h3>{t("documentStructurePage.folderSelectedTitle")}</h3>
+              <p>{t("documentStructurePage.folderSelectedSubtitle")}</p>
+            </div>
+
+            <Link
+              to={`/folders/${selectedFolder.id}/chat`}
+              className="document-structure__folder-cta"
+            >
+              <Sparkles size={16} />
+              <span>{t("documentStructurePage.openFolderChat")}</span>
+            </Link>
           </div>
         </div>
       </section>
@@ -440,6 +467,7 @@ function PreviewPane({
             {t("documentStructurePage.previewKicker")}
           </p>
           <h2>{title}</h2>
+
           <div className="document-structure__viewer-meta">
             <span className="document-structure__viewer-chip">
               <FileText size={14} />
@@ -678,6 +706,18 @@ function DocumentStructurePage() {
     return count(folders);
   }, [folders]);
 
+  const selectedContextLabel = useMemo(() => {
+    if (selectedDocument) {
+      return getDocumentDisplayName(selectedDocument);
+    }
+
+    if (selectedFolder) {
+      return getFolderDisplayName(selectedFolder, language);
+    }
+
+    return t("documentStructurePage.emptyPreviewTitle");
+  }, [language, selectedDocument, selectedFolder, t]);
+
   function handleToggle(id: string) {
     setExpandedIds((prev) => {
       const next = new Set(prev);
@@ -711,17 +751,25 @@ function DocumentStructurePage() {
 
           <h1>{t("documentStructurePage.title")}</h1>
           <p>{t("documentStructurePage.subtitle")}</p>
+
+          <div className="document-structure__hero-chips">
+            <span className="document-structure__hero-chip">
+              <FileText size={14} />
+              {documents.length} {t("documents.totalDocuments").toLowerCase()}
+            </span>
+            <span className="document-structure__hero-chip">
+              <FolderTree size={14} />
+              {totalFolders} {t("documents.folders").toLowerCase()}
+            </span>
+          </div>
         </div>
 
-        <div className="document-structure__hero-stats">
-          <div className="document-structure__stat">
-            <span>{t("documents.totalDocuments")}</span>
-            <strong>{documents.length}</strong>
+        <div className="document-structure__hero-panel">
+          <div className="document-structure__hero-panel-label">
+            {t("documentStructurePage.previewKicker")}
           </div>
-          <div className="document-structure__stat">
-            <span>{t("documents.folders")}</span>
-            <strong>{totalFolders}</strong>
-          </div>
+          <strong>{selectedContextLabel}</strong>
+          <span>{t("documentStructurePage.treeSubtitle")}</span>
         </div>
       </section>
 
@@ -732,14 +780,17 @@ function DocumentStructurePage() {
         </div>
       ) : null}
 
-      <div className="document-structure__layout">
+      <div className="document-structure__workspace">
         <aside className="document-structure__sidebar surface-card">
-          <div className="document-structure__sidebar-header">
+          <div className="document-structure__sidebar-top">
             <div>
               <p className="section-kicker">
                 {t("documentStructurePage.treeKicker")}
               </p>
               <h2>{t("documentStructurePage.treeTitle")}</h2>
+              <p className="document-structure__sidebar-subtitle">
+                {t("documentStructurePage.treeSubtitle")}
+              </p>
             </div>
 
             <label className="document-structure__search">
@@ -752,37 +803,39 @@ function DocumentStructurePage() {
             </label>
           </div>
 
-          <div className="document-structure__tree">
-            {tree.length === 0 ? (
-              <div className="document-structure__empty document-structure__empty--small">
-                <FileText size={20} />
-                <h3>{t("documentStructurePage.emptyTreeTitle")}</h3>
-                <p>{t("documentStructurePage.emptyTreeSubtitle")}</p>
-              </div>
-            ) : (
-              tree.map((node) => (
-                <TreeItem
-                  key={`${node.type}-${node.id}`}
-                  node={node}
-                  expandedIds={expandedIds}
-                  selectedDocumentId={selectedDocumentId}
-                  selectedFolderId={selectedFolderId}
-                  onToggle={handleToggle}
-                  onSelectDocument={(documentId) => {
-                    setSelectedDocumentId(documentId);
-                    setSelectedFolderId(null);
-                  }}
-                  onSelectFolder={(folderId) => {
-                    setSelectedFolderId(folderId);
-                    setSelectedDocumentId(null);
-                    setPreviewMeta(null);
-                    setPreviewObjectUrl("");
-                    setOriginalObjectUrl("");
-                    setPreviewError("");
-                  }}
-                />
-              ))
-            )}
+          <div className="document-structure__tree-scroll">
+            <div className="document-structure__tree">
+              {tree.length === 0 ? (
+                <div className="document-structure__empty document-structure__empty--small">
+                  <FileText size={20} />
+                  <h3>{t("documentStructurePage.emptyTreeTitle")}</h3>
+                  <p>{t("documentStructurePage.emptyTreeSubtitle")}</p>
+                </div>
+              ) : (
+                tree.map((node) => (
+                  <TreeItem
+                    key={`${node.type}-${node.id}`}
+                    node={node}
+                    expandedIds={expandedIds}
+                    selectedDocumentId={selectedDocumentId}
+                    selectedFolderId={selectedFolderId}
+                    onToggle={handleToggle}
+                    onSelectDocument={(documentId) => {
+                      setSelectedDocumentId(documentId);
+                      setSelectedFolderId(null);
+                    }}
+                    onSelectFolder={(folderId) => {
+                      setSelectedFolderId(folderId);
+                      setSelectedDocumentId(null);
+                      setPreviewMeta(null);
+                      setPreviewObjectUrl("");
+                      setOriginalObjectUrl("");
+                      setPreviewError("");
+                    }}
+                  />
+                ))
+              )}
+            </div>
           </div>
         </aside>
 

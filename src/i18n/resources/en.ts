@@ -89,6 +89,8 @@ export const en = {
     folderSelectedTitle: "Folder selected",
     folderSelectedSubtitle:
       "You can open chat for the whole folder or choose a document to preview.",
+    treeSubtitle:
+      "Browse folders and documents in a more comfortable structure view.",
   },
   documents: {
     batchUploadTitle: "Drop files or click to upload",

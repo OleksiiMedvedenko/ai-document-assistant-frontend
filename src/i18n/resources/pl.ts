@@ -91,6 +91,8 @@ export const pl = {
     folderSelectedTitle: "Wybrano folder",
     folderSelectedSubtitle:
       "Możesz przejść do rozmowy z całym folderem albo wybrać dokument do podglądu.",
+    treeSubtitle:
+      "Przeglądaj hierarchię folderów i dokumentów w wygodniejszym układzie.",
   },
   documents: {
     batchUploadTitle: "Upuść pliki albo kliknij, aby przesłać",
