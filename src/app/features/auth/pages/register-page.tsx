@@ -1,6 +1,13 @@
 import { register } from "@/app/api/auth.api";
 import { AppLoader } from "@/app/components/feedback/app-loader";
 import { LanguageSwitcher } from "@/app/components/layout/language-switcher";
+import {
+  buildEmailConfirmationUrl,
+  getCurrentLanguage,
+  isValidEmail,
+  readApiErrorCode,
+  translateAuthError,
+} from "@/app/lib/auth-flow";
 import { LockKeyhole, Mail, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -37,16 +44,58 @@ export function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (loading) return;
+
+    const normalizedEmail = email.trim();
+
+    if (!normalizedEmail) {
+      setError(t("auth.errors.emailRequired"));
+      return;
+    }
+
+    if (!isValidEmail(normalizedEmail)) {
+      setError(t("auth.errors.emailInvalid"));
+      return;
+    }
+
+    if (!password.trim()) {
+      setError(t("auth.errors.passwordRequired"));
+      return;
+    }
+
+    if (password.length < 8) {
+      setError(t("auth.errors.passwordTooShort"));
+      return;
+    }
+
     setError("");
     setLoading(true);
 
     try {
-      await Promise.all([register({ email, password }), wait(250)]);
+      await Promise.all([
+        register({
+          email: normalizedEmail,
+          password,
+          confirmationUrl: buildEmailConfirmationUrl(),
+          language: getCurrentLanguage(),
+        }),
+        wait(250),
+      ]);
+
       setShowSuccessLoader(true);
       await wait(MIN_SUCCESS_LOADER_MS);
-      navigate("/login");
-    } catch {
-      setError(t("auth.register.error"));
+
+      navigate("/login", {
+        replace: true,
+        state: {
+          registeredEmail: normalizedEmail,
+          registrationSuccess: true,
+        },
+      });
+    } catch (error) {
+      const code = readApiErrorCode(error);
+      setError(translateAuthError(t, code, t("auth.register.error")));
     } finally {
       setShowSuccessLoader(false);
       setLoading(false);

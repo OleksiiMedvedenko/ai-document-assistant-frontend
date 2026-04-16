@@ -285,6 +285,51 @@ export const ua = {
       noAccount: "Ще немає акаунта?",
       createAccount: "Створити",
       error: "Не вдалося увійти. Перевірте дані та спробуйте ще раз.",
+      loaderTitle: "Вхід",
+      loaderSubtitle: "Відновлюємо ваш робочий простір і сесію...",
+      registrationSuccess:
+        "Обліковий запис створено. Перевірте e-mail і активуйте його перед входом.",
+      resendConfirmation: "Надіслати лист підтвердження ще раз",
+      resending: "Надсилання...",
+      resendSuccess: "Новий лист підтвердження надіслано.",
+      resendError: "Не вдалося повторно надіслати лист підтвердження.",
+    },
+    confirm: {
+      kicker: "Підтвердження e-mail",
+      loadingTitle: "Підтверджуємо ваш e-mail",
+      successTitle: "E-mail підтверджено",
+      errorTitle: "Не вдалося підтвердити",
+      successMessage:
+        "Ваш e-mail успішно підтверджено. Тепер ви можете увійти.",
+      errorMessage: "Посилання для підтвердження недійсне або вже прострочене.",
+      invalidLink: "Це посилання для підтвердження неповне або недійсне.",
+      resendButton: "Надіслати лист підтвердження ще раз",
+      resending: "Надсилання...",
+      resendSuccess: "Новий лист підтвердження надіслано.",
+      resendError: "Не вдалося надіслати лист підтвердження.",
+      goToLogin: "Перейти до входу",
+      emailLabel: "E-mail",
+    },
+    errors: {
+      emailRequired: "E-mail є обов’язковим.",
+      emailInvalid: "Введіть коректну адресу e-mail.",
+      passwordRequired: "Пароль є обов’язковим.",
+      passwordTooShort: "Пароль має містити щонайменше 8 символів.",
+      emailAlreadyExists: "Обліковий запис з такою адресою e-mail уже існує.",
+      invalidCredentials: "Неправильний e-mail або пароль.",
+      emailNotConfirmed:
+        "Обліковий запис ще не активовано. Підтвердіть e-mail, щоб продовжити.",
+      accountInactive: "Обліковий запис неактивний.",
+      confirmationInvalidOrExpired:
+        "Посилання для підтвердження недійсне або вже прострочене.",
+      confirmationResendCooldown:
+        "Зачекайте перед повторним надсиланням листа підтвердження.",
+      confirmationDeliveryFailed:
+        "Зараз не вдалося надіслати лист підтвердження. Спробуйте ще раз трохи пізніше.",
+      emailAlreadyConfirmed: "Цю адресу e-mail уже підтверджено.",
+      confirmationUrlInvalid: "Конфігурація посилання підтвердження недійсна.",
+      invalidSession: "Сесія недійсна. Увійдіть ще раз.",
+      notAuthenticated: "Користувача не автентифіковано.",
     },
     register: {
       badge: "Створіть свій AI-простір",
@@ -310,6 +355,9 @@ export const ua = {
       error: "Не вдалося зареєструватися. Спробуйте ще раз.",
       loaderTitle: "Створюємо ваш акаунт",
       loaderSubtitle: "Готуємо простір і перенаправляємо на вхід...",
+      successTitle: "Обліковий запис створено",
+      successSubtitle:
+        "Ми готуємо ваш робочий простір. Тепер підтвердьте e-mail.",
     },
   },
   home: {

@@ -284,32 +284,82 @@ export const pl = {
       noAccount: "Nie masz jeszcze konta?",
       createAccount: "Utwórz konto",
       error: "Logowanie nie powiodło się. Sprawdź dane i spróbuj ponownie.",
+      loaderTitle: "Logowanie",
+      loaderSubtitle: "Przywracamy Twoją przestrzeń i sesję...",
+      registrationSuccess:
+        "Konto zostało utworzone. Sprawdź e-mail i aktywuj konto przed zalogowaniem.",
+      resendConfirmation: "Wyślij e-mail aktywacyjny ponownie",
+      resending: "Wysyłanie...",
+      resendSuccess: "Wysłano nowy e-mail aktywacyjny.",
+      resendError: "Nie udało się ponownie wysłać e-maila aktywacyjnego.",
     },
-  },
-  register: {
-    badge: "Utwórz swoją przestrzeń AI",
-    title: "Załóż konto ✨",
-    subtitle:
-      "Zacznij budować swoją przestrzeń do analizy dokumentów w lepszym i nowocześniejszym interfejsie.",
-    featureWorkspace:
-      "Skonfiguruj swoją osobistą przestrzeń AI w kilka sekund.",
-    featureFiles: "Wgrywaj, analizuj i porównuj pliki w jednym miejscu.",
-    featureFlow: "Pracuj szybciej dzięki streszczeniom, ekstrakcji i chatowi.",
-    formTitle: "Utwórz konto",
-    formSubtitle:
-      "Dołącz do aplikacji i zacznij porządkować swój workflow dokumentów.",
-    email: "E-mail",
-    emailPlaceholder: "nazwa@firma.com",
-    password: "Hasło",
-    passwordPlaceholder: "Utwórz mocne hasło",
-    submit: "Utwórz konto",
-    creating: "Tworzenie...",
-    haveAccount: "Masz już konto?",
-    signIn: "Zaloguj się",
-    error: "Rejestracja nie powiodła się. Spróbuj ponownie.",
-    loaderTitle: "Tworzymy Twoje konto",
-    loaderSubtitle:
-      "Przygotowujemy przestrzeń i przekierowujemy do logowania...",
+    confirm: {
+      kicker: "Potwierdzenie adresu e-mail",
+      loadingTitle: "Potwierdzamy Twój e-mail",
+      successTitle: "E-mail potwierdzony",
+      errorTitle: "Potwierdzenie nie powiodło się",
+      successMessage:
+        "Adres e-mail został potwierdzony. Możesz się teraz zalogować.",
+      errorMessage: "Link aktywacyjny jest nieprawidłowy albo wygasł.",
+      invalidLink: "Ten link aktywacyjny jest niekompletny albo nieprawidłowy.",
+      resendButton: "Wyślij e-mail aktywacyjny ponownie",
+      resending: "Wysyłanie...",
+      resendSuccess: "Wysłano nowy e-mail aktywacyjny.",
+      resendError: "Nie udało się wysłać e-maila aktywacyjnego.",
+      goToLogin: "Przejdź do logowania",
+      emailLabel: "E-mail",
+    },
+    errors: {
+      emailRequired: "Adres e-mail jest wymagany.",
+      emailInvalid: "Wpisz poprawny adres e-mail.",
+      passwordRequired: "Hasło jest wymagane.",
+      passwordTooShort: "Hasło musi mieć co najmniej 8 znaków.",
+      emailAlreadyExists: "Konto z tym adresem e-mail już istnieje.",
+      invalidCredentials: "Nieprawidłowy adres e-mail lub hasło.",
+      emailNotConfirmed:
+        "Konto nie jest jeszcze aktywowane. Potwierdź adres e-mail, aby kontynuować.",
+      accountInactive: "Konto jest nieaktywne.",
+      confirmationInvalidOrExpired:
+        "Link aktywacyjny jest nieprawidłowy albo wygasł.",
+      confirmationResendCooldown:
+        "Poczekaj chwilę przed ponownym wysłaniem e-maila aktywacyjnego.",
+      confirmationDeliveryFailed:
+        "Nie udało się teraz wysłać e-maila aktywacyjnego. Spróbuj ponownie za chwilę.",
+      emailAlreadyConfirmed: "Ten adres e-mail został już potwierdzony.",
+      confirmationUrlInvalid:
+        "Konfiguracja linku aktywacyjnego jest nieprawidłowa.",
+      invalidSession: "Sesja jest nieprawidłowa. Zaloguj się ponownie.",
+      notAuthenticated: "Użytkownik nie jest uwierzytelniony.",
+    },
+    register: {
+      badge: "Utwórz swoją przestrzeń AI",
+      title: "Załóż konto ✨",
+      subtitle:
+        "Zacznij budować swoją przestrzeń do analizy dokumentów w lepszym i nowocześniejszym interfejsie.",
+      featureWorkspace:
+        "Skonfiguruj swoją osobistą przestrzeń AI w kilka sekund.",
+      featureFiles: "Wgrywaj, analizuj i porównuj pliki w jednym miejscu.",
+      featureFlow:
+        "Pracuj szybciej dzięki streszczeniom, ekstrakcji i chatowi.",
+      formTitle: "Utwórz konto",
+      formSubtitle:
+        "Dołącz do aplikacji i zacznij porządkować swój workflow dokumentów.",
+      email: "E-mail",
+      emailPlaceholder: "nazwa@firma.com",
+      password: "Hasło",
+      passwordPlaceholder: "Utwórz mocne hasło",
+      submit: "Utwórz konto",
+      creating: "Tworzenie...",
+      haveAccount: "Masz już konto?",
+      signIn: "Zaloguj się",
+      error: "Rejestracja nie powiodła się. Spróbuj ponownie.",
+      loaderTitle: "Tworzymy Twoje konto",
+      loaderSubtitle:
+        "Przygotowujemy przestrzeń i przekierowujemy do logowania...",
+      successTitle: "Konto utworzone",
+      successSubtitle:
+        "Przygotowujemy Twoją przestrzeń. Teraz potwierdź adres e-mail.",
+    },
   },
   home: {
     badge: "Nowa przestrzeń AI",

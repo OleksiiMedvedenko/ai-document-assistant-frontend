@@ -284,6 +284,30 @@ export const en = {
       noAccount: "No account yet?",
       createAccount: "Create one",
       error: "Login failed. Please check your credentials and try again.",
+      loaderTitle: "Signing you in",
+      loaderSubtitle: "Restoring your workspace and session...",
+      registrationSuccess:
+        "Your account has been created. Check your email to activate it before signing in.",
+      resendConfirmation: "Resend confirmation email",
+      resending: "Sending...",
+      resendSuccess: "A new confirmation email has been sent.",
+      resendError: "Could not resend the confirmation email.",
+    },
+    confirm: {
+      kicker: "Email confirmation",
+      loadingTitle: "Confirming your email",
+      successTitle: "Email confirmed",
+      errorTitle: "Confirmation failed",
+      successMessage:
+        "Your email was confirmed successfully. You can now sign in.",
+      errorMessage: "The confirmation link is invalid or has expired.",
+      invalidLink: "This confirmation link is incomplete or invalid.",
+      resendButton: "Resend confirmation email",
+      resending: "Sending...",
+      resendSuccess: "A new confirmation email has been sent.",
+      resendError: "Could not resend the confirmation email.",
+      goToLogin: "Go to sign in",
+      emailLabel: "Email",
     },
     register: {
       badge: "Create your AI workspace",
@@ -308,6 +332,30 @@ export const en = {
       loaderTitle: "Creating your account",
       loaderSubtitle:
         "Preparing your workspace and redirecting you to sign in...",
+      successTitle: "Account created",
+      successSubtitle:
+        "We are preparing your workspace. Please confirm your email next.",
+    },
+    errors: {
+      emailRequired: "Email is required.",
+      emailInvalid: "Enter a valid email address.",
+      passwordRequired: "Password is required.",
+      passwordTooShort: "Password must be at least 8 characters long.",
+      emailAlreadyExists: "An account with this email already exists.",
+      invalidCredentials: "Invalid email or password.",
+      emailNotConfirmed:
+        "Your account is not activated yet. Confirm your email to continue.",
+      accountInactive: "Your account is inactive.",
+      confirmationInvalidOrExpired:
+        "The confirmation link is invalid or has expired.",
+      confirmationResendCooldown:
+        "Please wait before requesting another confirmation email.",
+      confirmationDeliveryFailed:
+        "We could not send the confirmation email right now. Try again in a moment.",
+      emailAlreadyConfirmed: "This email address has already been confirmed.",
+      confirmationUrlInvalid: "The confirmation link configuration is invalid.",
+      invalidSession: "Your session is invalid. Please sign in again.",
+      notAuthenticated: "You are not authenticated.",
     },
   },
   home: {

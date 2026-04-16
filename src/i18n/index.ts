@@ -5,6 +5,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
 const savedLanguage = localStorage.getItem("app-language");
+
 const initialLanguage =
   savedLanguage === "en" || savedLanguage === "pl" || savedLanguage === "ua"
     ? savedLanguage

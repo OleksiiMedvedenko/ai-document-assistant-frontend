@@ -3,6 +3,7 @@ import { AppShell } from "../components/layout/app-shell";
 import { ProtectedRoute } from "../components/layout/protected-route";
 import { AccountPage } from "../features/account/pages/account-page";
 import { AdminUsersPage } from "../features/admin/pages/admin-users-page";
+import { ConfirmEmailPage } from "../features/auth/pages/confirm-email-page";
 import { LoginPage } from "../features/auth/pages/login-page";
 import { RegisterPage } from "../features/auth/pages/register-page";
 import { DocumentChatPage } from "../features/chat/pages/document-chat-page";
@@ -25,6 +26,10 @@ export const router = createBrowserRouter([
   {
     path: "/register",
     element: <RegisterPage />,
+  },
+  {
+    path: "/confirm-email",
+    element: <ConfirmEmailPage />,
   },
   {
     element: (

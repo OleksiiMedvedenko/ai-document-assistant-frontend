@@ -1,11 +1,18 @@
-import { login } from "@/app/api/auth.api";
+import { login, resendConfirmationEmail } from "@/app/api/auth.api";
 import { AppLoader } from "@/app/components/feedback/app-loader";
 import { LanguageSwitcher } from "@/app/components/layout/language-switcher";
+import {
+  buildEmailConfirmationUrl,
+  getCurrentLanguage,
+  isValidEmail,
+  readApiErrorCode,
+  translateAuthError,
+} from "@/app/lib/auth-flow";
 import { useAuthStore } from "@/app/store/auth.store";
 import { LockKeyhole, Mail, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../../../styles/login-page.css";
 
 const MIN_SUCCESS_LOADER_MS = 1000;
@@ -16,17 +23,32 @@ function wait(ms: number) {
 
 type BearState = "idle" | "email" | "password";
 
+type LoginLocationState = {
+  registeredEmail?: string;
+  registrationSuccess?: boolean;
+};
+
 export function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const setAuth = useAuthStore((state) => state.setAuth);
 
-  const [email, setEmail] = useState("");
+  const locationState = (location.state ?? null) as LoginLocationState | null;
+
+  const [email, setEmail] = useState(locationState?.registeredEmail ?? "");
   const [password, setPassword] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessLoader, setShowSuccessLoader] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState(
+    locationState?.registrationSuccess
+      ? t("auth.login.registrationSuccess")
+      : "",
+  );
+  const [isResending, setIsResending] = useState(false);
+  const [canResend, setCanResend] = useState(false);
 
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
@@ -42,12 +64,37 @@ export function LoginPage() {
 
     if (isSubmitting) return;
 
+    const normalizedEmail = email.trim();
+
+    if (!normalizedEmail) {
+      setError(t("auth.errors.emailRequired"));
+      setInfo("");
+      setCanResend(false);
+      return;
+    }
+
+    if (!isValidEmail(normalizedEmail)) {
+      setError(t("auth.errors.emailInvalid"));
+      setInfo("");
+      setCanResend(false);
+      return;
+    }
+
+    if (!password.trim()) {
+      setError(t("auth.errors.passwordRequired"));
+      setInfo("");
+      setCanResend(false);
+      return;
+    }
+
     setError("");
+    setInfo("");
+    setCanResend(false);
     setIsSubmitting(true);
 
     try {
       const [result] = await Promise.all([
-        login({ email, password }),
+        login({ email: normalizedEmail, password }),
         wait(250),
       ]);
 
@@ -57,11 +104,44 @@ export function LoginPage() {
       await wait(MIN_SUCCESS_LOADER_MS);
 
       navigate("/documents");
-    } catch {
-      setError(t("auth.login.error"));
+    } catch (error) {
+      const code = readApiErrorCode(error);
+      const message = translateAuthError(t, code, t("auth.login.error"));
+
+      setError(message);
+
+      if (code === "AUTH_EMAIL_NOT_CONFIRMED") {
+        setCanResend(true);
+      }
     } finally {
       setShowSuccessLoader(false);
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleResendConfirmation() {
+    const normalizedEmail = email.trim();
+
+    if (!normalizedEmail || isResending) return;
+
+    setError("");
+    setInfo("");
+    setIsResending(true);
+
+    try {
+      await resendConfirmationEmail({
+        email: normalizedEmail,
+        confirmationUrl: buildEmailConfirmationUrl(),
+        language: getCurrentLanguage(),
+      });
+
+      setInfo(t("auth.login.resendSuccess"));
+      setCanResend(false);
+    } catch (error) {
+      const code = readApiErrorCode(error);
+      setError(translateAuthError(t, code, t("auth.login.resendError")));
+    } finally {
+      setIsResending(false);
     }
   }
 
@@ -212,7 +292,21 @@ export function LoginPage() {
                 </div>
               </label>
 
+              {info ? <div className="login-form__info">{info}</div> : null}
               {error ? <div className="login-form__error">{error}</div> : null}
+
+              {canResend ? (
+                <button
+                  type="button"
+                  className="login-form__secondary"
+                  disabled={isResending}
+                  onClick={handleResendConfirmation}
+                >
+                  {isResending
+                    ? t("auth.login.resending")
+                    : t("auth.login.resendConfirmation")}
+                </button>
+              ) : null}
 
               <button
                 type="submit"
