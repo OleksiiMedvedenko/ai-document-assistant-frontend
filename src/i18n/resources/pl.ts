@@ -13,6 +13,7 @@ export const pl = {
     account: "Konto",
     adminUsers: "Użytkownicy",
     documentStructure: "Struktura dokumentów",
+    smartWorkspace: "Inteligentny workspace",
   },
   common: {
     logout: "Wyloguj",
@@ -209,6 +210,7 @@ export const pl = {
     summaryKicker: "Streszczenie AI",
     extractionKicker: "Ekstrakcja strukturalna",
     historyKicker: "Poprzednie uruchomienia",
+    openPreview: "Otwórz podgląd",
   },
   chat: {
     title: "Rozmowa AI",
@@ -502,5 +504,124 @@ export const pl = {
     resetConfirmTitle: "Przywrócić domyślne limity?",
     resetConfirmDescription:
       "To usunie niestandardowe limity użytkownika {{email}} i przywróci wartości domyślne.",
+  },
+  smartWorkspace: {
+    loading: "Ładowanie Smart Workspace...",
+    heroBadge: "Smart Folder Assistant 2.1",
+    title: "Przeglądaj i porządkuj dokumenty",
+    subtitle:
+      "Przeglądaj decyzje AI dotyczące folderów, sprawdzaj którego dokumentu dotyczą, scalaj duplikaty folderów i zarządzaj wielokrotnego użytku szablonami AI.",
+    suggestedFolder: "Sugerowany folder",
+    unfiled: "Bez przypisanego folderu",
+
+    metrics: {
+      documents: "Dokumenty",
+      ready: "Gotowe",
+      inboxReview: "Do sprawdzenia",
+      unfiled: "Nieprzypisane",
+    },
+
+    suggestions: {
+      kicker: "Decyzje AI",
+      title: "Sugestie folderów do przeglądu",
+      description:
+        "Każda karta dotyczy jednego dokumentu. Przejrzyj proponowane foldery i zdecyduj, gdzie dokument powinien trafić.",
+      empty: "Nie ma żadnych sugestii folderów oczekujących na przegląd.",
+      rank: "Pozycja #{{rank}}",
+      option: "Opcja #{{rank}}",
+      noReason: "Brak uzasadnienia dla tej sugestii.",
+      rules: "Reguły {{score}}",
+      semantic: "Dopasowanie semantyczne {{score}}",
+      history: "Twoja historia {{score}}",
+      decidingFor: "Decyzja dla dokumentu",
+      unknownDocument: "Dokument {{id}}",
+      unknownStatus: "Nieznany status",
+      count: "{{count}} opcji",
+    },
+
+    reasons: {
+      topicAndSemantic:
+        "Folder pasuje do tematu dokumentu. Dopasowanie semantyczne folderu: {{score}}.",
+      typeAndSemantic:
+        "Folder pasuje do typu dokumentu. Dopasowanie semantyczne folderu: {{score}}.",
+      semanticOnly:
+        "Dokument jest semantycznie podobny do tego folderu. Dopasowanie: {{score}}.",
+    },
+
+    inbox: {
+      kicker: "Skrzynka przeglądu",
+      title: "Dokumenty wymagające uwagi",
+      empty: "Żadne dokumenty nie wymagają teraz Twojej uwagi.",
+    },
+
+    tools: {
+      kicker: "Narzędzia workspace",
+      title: "Porządki i automatyzacja",
+      description:
+        "Użyj tych narzędzi, aby scalać podobne foldery albo zapisywać powtarzalne instrukcje AI. Są opcjonalne i nie wpływają na oczekujące decyzje.",
+    },
+
+    duplicates: {
+      kicker: "Porządki",
+      title: "Możliwe duplikaty folderów",
+      empty: "Nie znaleziono kandydatów na duplikaty folderów.",
+      similar: "Podobieństwo {{score}}",
+    },
+
+    templates: {
+      kicker: "Szablony AI",
+      title: "Akcje AI wielokrotnego użytku",
+      description:
+        "Opcjonalne szablony pozwalają zapisać prompty, których używasz często, np. ekstrakcję faktury albo analizę ryzyk w umowie.",
+      empty: "Nie masz jeszcze zapisanych szablonów AI.",
+      defaultName: "Ekstrakcja faktury",
+      defaultPrompt:
+        "Wyciągnij numer faktury, sprzedawcę, nabywcę, kwotę netto, VAT, kwotę brutto i termin płatności.",
+      namePlaceholder: "Nazwa szablonu",
+      documentTypePlaceholder: "Typ dokumentu, np. invoice",
+      promptPlaceholder: "Co AI ma zrobić z tym dokumentem?",
+      outputFormatPlaceholder: "Format wyjściowy, np. json",
+      anyDocument: "dowolny dokument",
+
+      formTitle: "Edytor szablonu",
+      savedTitle: "Zapisane szablony",
+      editing: "Edytujesz wybrany szablon",
+      clearSelection: "Wyczyść",
+      selected: "Wybrany",
+      selectedHint: "Ten szablon jest aktualnie załadowany do formularza.",
+      loadTemplate: "Załaduj szablon",
+      nameLabel: "Nazwa szablonu",
+      documentTypeLabel: "Typ dokumentu",
+      promptLabel: "Prompt",
+      outputFormatLabel: "Format wyjściowy",
+    },
+
+    actions: {
+      accept: "Akceptuj",
+      reject: "Odrzuć",
+      merge: "Scal",
+      saveTemplate: "Zapisz szablon",
+      deleteTemplate: "Usuń szablon",
+      openDocument: "Otwórz dokument",
+    },
+
+    notices: {
+      accepted:
+        "Sugestia została zaakceptowana. Dokument przeniesiono, a asystent nauczył się Twojego wyboru.",
+      rejected: "Sugestia została odrzucona.",
+      merged: "Duplikaty folderów zostały scalone.",
+      templateSaved: "Szablon AI został zapisany.",
+      templateDeleted: "Szablon AI został usunięty.",
+      templateLoaded: "Szablon został załadowany do formularza.",
+    },
+
+    errors: {
+      load: "Nie udało się załadować Smart Workspace.",
+      accept: "Nie udało się zaakceptować tej sugestii.",
+      reject: "Nie udało się odrzucić tej sugestii.",
+      merge: "Nie udało się scalić tych folderów.",
+      templateSave: "Nie udało się zapisać tego szablonu.",
+      templateDelete: "Nie udało się usunąć tego szablonu.",
+    },
   },
 };

@@ -13,6 +13,7 @@ import { DocumentDetailsPage } from "../features/documents/pages/document-detail
 import DocumentStructurePage from "../features/documents/pages/document-structure-page";
 import { DocumentsPage } from "../features/documents/pages/documents-page";
 import { HomePage } from "../features/home/pages/home-page";
+import { SmartWorkspacePage } from "../features/smart-workspace/pages/smart-workspace-page";
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
     children: [
       { path: "/home", element: <HomePage /> },
       { path: "/documents", element: <DocumentsPage /> },
+      { path: "/smart-workspace", element: <SmartWorkspacePage /> },
       { path: "/documents/:id", element: <DocumentDetailsPage /> },
       { path: "/documents/:id/chat", element: <DocumentChatPage /> },
       { path: "/folders/:folderId/chat", element: <FolderChatPage /> },

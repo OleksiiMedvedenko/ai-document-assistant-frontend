@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import "../../../styles/document-structure-page.css";
 
 type TreeNode =
@@ -547,6 +547,8 @@ function PreviewPane({
 
 function DocumentStructurePage() {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
+  const requestedDocumentId = searchParams.get("documentId");
   const language = i18n.language;
 
   const [folders, setFolders] = useState<DocumentFolderItem[]>([]);
@@ -595,7 +597,14 @@ function DocumentStructurePage() {
 
         setExpandedIds(new Set(collectFolderIds(tree)));
 
-        if (normalizedDocuments.length > 0) {
+        const requestedDocument = requestedDocumentId
+          ? normalizedDocuments.find((doc) => doc.id === requestedDocumentId)
+          : null;
+
+        if (requestedDocument) {
+          setSelectedDocumentId(requestedDocument.id);
+          setSelectedFolderId(null);
+        } else if (normalizedDocuments.length > 0) {
           setSelectedDocumentId(normalizedDocuments[0].id);
           setSelectedFolderId(null);
         }
@@ -607,7 +616,7 @@ function DocumentStructurePage() {
     }
 
     void load();
-  }, [language, t]);
+  }, [language, requestedDocumentId, t]);
 
   const selectedDocument = useMemo(
     () => documents.find((doc) => doc.id === selectedDocumentId) ?? null,

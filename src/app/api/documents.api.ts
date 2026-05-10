@@ -208,3 +208,140 @@ export async function getDocumentOriginalFileBlob(documentId: string) {
 
   return data as Blob;
 }
+
+export type DocumentDashboardBucket = {
+  key: string;
+  name: string;
+  count: number;
+};
+
+export type DocumentFolderSuggestion = {
+  id: string;
+  documentId: string;
+  existingFolderId?: string | null;
+  existingFolderName?: string | null;
+  proposedKey: string;
+  proposedName: string;
+  proposedNamePl?: string | null;
+  proposedNameEn?: string | null;
+  proposedNameUa?: string | null;
+  proposedParentFolderId?: string | null;
+  score: number;
+  ruleScore?: number;
+  semanticScore?: number;
+  userHistoryScore?: number;
+  finalScore?: number;
+  rank: number;
+  reason: string;
+  status: string;
+  createdAtUtc: string;
+  acceptedAtUtc?: string | null;
+  rejectedAtUtc?: string | null;
+};
+
+export type DocumentDashboard = {
+  totalDocuments: number;
+  newDocuments: number;
+  unfiledDocuments: number;
+  pendingReviewDocuments: number;
+  readyDocuments: number;
+  failedDocuments: number;
+  byStatus: DocumentDashboardBucket[];
+  byFolder: DocumentDashboardBucket[];
+  byDocumentType: DocumentDashboardBucket[];
+  recentDocuments: DocumentItem[];
+  pendingSuggestions: DocumentFolderSuggestion[];
+};
+
+export type DocumentIntelligenceSnapshot = {
+  documentId: string;
+  documentType: string;
+  businessDomain: string;
+  topic: string;
+  year?: number | null;
+  month?: number | null;
+  dueDate?: string | null;
+  effectiveDate?: string | null;
+  confidence: number;
+  keywords: string[];
+  reason: string;
+  updatedAtUtc: string;
+};
+
+export type RelatedDocument = {
+  documentId: string;
+  originalFileName: string;
+  folderId?: string | null;
+  folderName?: string | null;
+  status: number | string;
+  score: number;
+  reason: string;
+  uploadedAtUtc: string;
+};
+
+export async function getDocumentDashboard() {
+  const { data } = await apiClient.get<DocumentDashboard>(
+    "/api/documents/dashboard",
+  );
+
+  return data;
+}
+
+export async function getDocumentInbox() {
+  const { data } = await apiClient.get<DocumentItem[]>("/api/documents/inbox");
+  return data;
+}
+
+export async function getDocumentFolderSuggestions(documentId: string) {
+  const { data } = await apiClient.get<DocumentFolderSuggestion[]>(
+    `/api/documents/${documentId}/folder-suggestions`,
+  );
+
+  return data;
+}
+
+export async function regenerateDocumentFolderSuggestions(documentId: string) {
+  const { data } = await apiClient.post<DocumentFolderSuggestion[]>(
+    `/api/documents/${documentId}/folder-suggestions/regenerate`,
+  );
+
+  return data;
+}
+
+export async function acceptDocumentFolderSuggestion(
+  documentId: string,
+  suggestionId: string,
+) {
+  const { data } = await apiClient.post<DocumentItem>(
+    `/api/documents/${documentId}/folder-suggestions/${suggestionId}/accept`,
+  );
+
+  return data;
+}
+
+export async function rejectDocumentFolderSuggestion(
+  documentId: string,
+  suggestionId: string,
+) {
+  const { data } = await apiClient.post<DocumentFolderSuggestion>(
+    `/api/documents/${documentId}/folder-suggestions/${suggestionId}/reject`,
+  );
+
+  return data;
+}
+
+export async function getDocumentIntelligence(documentId: string) {
+  const { data } = await apiClient.get<DocumentIntelligenceSnapshot>(
+    `/api/documents/${documentId}/intelligence`,
+  );
+
+  return data;
+}
+
+export async function getRelatedDocuments(documentId: string) {
+  const { data } = await apiClient.get<RelatedDocument[]>(
+    `/api/documents/${documentId}/related`,
+  );
+
+  return data;
+}

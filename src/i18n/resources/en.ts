@@ -12,6 +12,7 @@ export const en = {
     account: "Account",
     adminUsers: "Admin users",
     documentStructure: "Document structure",
+    smartWorkspace: "Smart workspace",
   },
   common: {
     logout: "Logout",
@@ -207,6 +208,7 @@ export const en = {
     summaryKicker: "AI summary",
     extractionKicker: "Structured extraction",
     historyKicker: "Previous runs",
+    openPreview: "Open preview",
   },
   chat: {
     title: "AI conversation",
@@ -498,5 +500,124 @@ export const en = {
     resetConfirmTitle: "Reset custom limits?",
     resetConfirmDescription:
       "This will remove custom usage overrides for {{email}} and restore the default limits.",
+  },
+  smartWorkspace: {
+    loading: "Loading Smart Workspace...",
+    heroBadge: "Smart Folder Assistant 2.1",
+    title: "Review and organize your documents",
+    subtitle:
+      "Review AI folder decisions, see which document each decision affects, merge duplicate folders, and manage reusable AI templates.",
+    suggestedFolder: "Suggested folder",
+    unfiled: "Unfiled",
+
+    metrics: {
+      documents: "Documents",
+      ready: "Ready",
+      inboxReview: "Needs review",
+      unfiled: "Unfiled",
+    },
+
+    suggestions: {
+      kicker: "AI decisions",
+      title: "Folder suggestions to review",
+      description:
+        "Each card represents one document. Review the proposed folders and choose where this document should go.",
+      empty: "There are no folder suggestions waiting for review.",
+      rank: "Rank #{{rank}}",
+      option: "Option #{{rank}}",
+      noReason: "No explanation was provided for this suggestion.",
+      rules: "Rules {{score}}",
+      semantic: "Semantic match {{score}}",
+      history: "Your history {{score}}",
+      decidingFor: "Decision for document",
+      unknownDocument: "Document {{id}}",
+      unknownStatus: "Unknown status",
+      count: "{{count}} options",
+    },
+
+    reasons: {
+      topicAndSemantic:
+        "The folder matches the document topic. Semantic folder match: {{score}}.",
+      typeAndSemantic:
+        "The folder matches the document type. Semantic folder match: {{score}}.",
+      semanticOnly:
+        "The document is semantically similar to this folder. Match: {{score}}.",
+    },
+
+    inbox: {
+      kicker: "Review inbox",
+      title: "Documents needing attention",
+      empty: "No documents need your attention right now.",
+    },
+
+    tools: {
+      kicker: "Workspace tools",
+      title: "Cleanup and automation",
+      description:
+        "Use these tools when you want to clean up similar folders or save repeatable AI instructions. They are optional and do not affect pending folder decisions.",
+    },
+
+    duplicates: {
+      kicker: "Cleanup",
+      title: "Possible duplicate folders",
+      empty: "No duplicate folder candidates were found.",
+      similar: "{{score}} similar",
+    },
+
+    templates: {
+      kicker: "AI templates",
+      title: "Reusable AI actions",
+      description:
+        "Optional templates let you save prompts you use often, for example invoice extraction or contract risk review.",
+      empty: "You have not saved any AI templates yet.",
+      defaultName: "Invoice extraction",
+      defaultPrompt:
+        "Extract invoice number, seller, buyer, net amount, VAT, gross amount and payment due date.",
+      namePlaceholder: "Template name",
+      documentTypePlaceholder: "Document type, e.g. invoice",
+      promptPlaceholder: "What should AI do with this document?",
+      outputFormatPlaceholder: "Output format, e.g. json",
+      anyDocument: "any document",
+
+      formTitle: "Template editor",
+      savedTitle: "Saved templates",
+      editing: "Editing selected template",
+      clearSelection: "Clear",
+      selected: "Selected",
+      selectedHint: "This template is currently loaded into the form.",
+      loadTemplate: "Load template",
+      nameLabel: "Template name",
+      documentTypeLabel: "Document type",
+      promptLabel: "Prompt",
+      outputFormatLabel: "Output format",
+    },
+
+    actions: {
+      accept: "Accept",
+      reject: "Reject",
+      merge: "Merge",
+      saveTemplate: "Save template",
+      deleteTemplate: "Delete template",
+      openDocument: "Open document",
+    },
+
+    notices: {
+      accepted:
+        "Suggestion accepted. The document was moved and the assistant learned from your choice.",
+      rejected: "Suggestion rejected.",
+      merged: "Duplicate folders were merged.",
+      templateSaved: "AI template saved.",
+      templateDeleted: "AI template deleted.",
+      templateLoaded: "Template loaded into the form.",
+    },
+
+    errors: {
+      load: "Could not load Smart Workspace.",
+      accept: "Could not accept this suggestion.",
+      reject: "Could not reject this suggestion.",
+      merge: "Could not merge these folders.",
+      templateSave: "Could not save this template.",
+      templateDelete: "Could not delete this template.",
+    },
   },
 };

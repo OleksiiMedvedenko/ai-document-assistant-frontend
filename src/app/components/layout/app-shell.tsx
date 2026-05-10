@@ -48,6 +48,12 @@ export function AppShell() {
         active: location.pathname.startsWith("/document-structure"),
       },
       {
+        to: "/smart-workspace",
+        label: t("nav.smartWorkspace"),
+        icon: Sparkles,
+        active: location.pathname.startsWith("/smart-workspace"),
+      },
+      {
         to: "/compare",
         label: t("nav.compare"),
         icon: GitCompareArrows,
@@ -83,6 +89,7 @@ export function AppShell() {
     if (location.pathname === "/home") return t("nav.home");
     if (location.pathname.startsWith("/document-structure"))
       return t("nav.documentStructure");
+    if (location.pathname.startsWith("/smart-workspace")) return t("nav.smartWorkspace");
     if (location.pathname.startsWith("/compare")) return t("nav.compare");
     if (location.pathname.includes("/chat")) return t("nav.chat");
     if (location.pathname.startsWith("/account")) return t("nav.account");

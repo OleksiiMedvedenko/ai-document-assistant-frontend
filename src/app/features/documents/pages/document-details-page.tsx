@@ -23,6 +23,7 @@ import {
   ArrowRight,
   BadgeCheck,
   Bot,
+  Eye,
   FileText,
   GitCompareArrows,
   Loader2,
@@ -492,6 +493,14 @@ export function DocumentDetailsPage() {
           >
             <Bot size={18} />
             <span>{t("details.openChat")}</span>
+          </Link>
+
+          <Link
+            to={`/document-structure?documentId=${documentItem.id}`}
+            className="detail-action"
+          >
+            <Eye size={18} />
+            <span>{t("details.openPreview")}</span>
           </Link>
 
           <Link to="/compare" className="detail-action">
