@@ -1211,3 +1211,18 @@
     margin-top: 6px;
   }
 }
+
+.document-card__action--success {
+  border: 0;
+  cursor: pointer;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(16, 185, 129, 0.72));
+  box-shadow: 0 10px 22px rgba(34, 197, 94, 0.16);
+  font: inherit;
+  font-weight: 700;
+}
+
+.document-card__action--success:disabled {
+  cursor: wait;
+  opacity: 0.68;
+  transform: none;
+}

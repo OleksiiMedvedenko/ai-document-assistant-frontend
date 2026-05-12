@@ -12,6 +12,7 @@ export const en = {
     account: "Account",
     adminUsers: "Admin users",
     documentStructure: "Document structure",
+    pendingDecisions: "{{count}} decisions need review",
     smartWorkspace: "Smart workspace",
   },
   common: {
@@ -94,6 +95,7 @@ export const en = {
       "Browse folders and documents in a more comfortable structure view.",
   },
   documents: {
+    confirmAssignment: "Keep / teach AI",
     batchUploadTitle: "Drop files or click to upload",
     batchUploadSubtitle: "Upload one file or a whole package at once",
     uploadError: "Upload failed. Please try again.",
@@ -179,6 +181,7 @@ export const en = {
       autoCreated: "AI created folder",
       suggested: "AI suggestion",
       uncategorized: "Uncategorized",
+      fromStructure: "Assigned from folder structure",
     },
   },
   details: {
@@ -508,6 +511,78 @@ export const en = {
     subtitle:
       "Review AI folder decisions, see which document each decision affects, merge duplicate folders, and manage reusable AI templates.",
     suggestedFolder: "Suggested folder",
+
+    decision: {
+      title: "Folder decisions",
+      description:
+        "Review AI decisions only when a document needs confirmation or correction. For confident assignments, confirm the choice to teach the assistant.",
+      currentAssignment: "Current AI assignment",
+      needsReview: "User decision required",
+    },
+
+    correction: {
+      kicker: "Folder correction",
+      title: "Choose the right folder",
+      description:
+        "Moving a document teaches the assistant how you organize files.",
+      noFolders: "You do not have any folders to choose from yet.",
+    },
+
+    reasonCodes: {
+      smart_folder_auto_assigned_existing:
+        "AI selected an existing folder using the document structure and content.",
+      smart_folder_auto_assigned_existing_path:
+        "AI matched the proposed path to an existing folder and assigned the document.",
+      smart_folder_auto_created_path:
+        "AI created the missing folder path and assigned the document.",
+      smart_folder_auto_created_and_assigned:
+        "AI created a folder and assigned the document.",
+      smart_folder_auto_assigned_from_structure:
+        "The folder was recognized from the uploaded directory structure.",
+      smart_folder_upload_structure_matched_existing:
+        "The uploaded directory structure matched an existing folder.",
+      smart_folder_upload_structure_created_path:
+        "AI created folders from the uploaded directory structure.",
+      smart_folder_needs_review:
+        "AI is not confident enough and asks for a user decision.",
+      smart_folder_no_confident_match: "No confident folder match was found.",
+      smart_folder_no_useful_signal:
+        "The document does not contain enough useful signals for folder assignment.",
+      smart_folder_proposed_existing_needs_review:
+        "AI found a possible existing folder, but it needs your review.",
+      smart_folder_proposed_path_needs_review:
+        "AI proposed a new folder path, but it needs your review before creating it.",
+      smart_folder_existing_path_selected:
+        "AI selected the best existing folder path.",
+      smart_folder_new_path_proposed: "AI proposed a new folder path.",
+      smart_folder_user_confirmed_assignment:
+        "The user confirmed the folder assignment.",
+      smart_folder_user_confirmed_uncategorized:
+        "The user confirmed that the document should remain uncategorized.",
+      smart_folder_suggestion_accepted:
+        "The user accepted the folder suggestion.",
+      smart_folder_suggestion_rejected_uncategorized:
+        "The suggestion was rejected and the document was moved to uncategorized.",
+      smart_folder_manual_folder_selected: "The folder was selected manually.",
+      smart_folder_manual_upload_folder_selected:
+        "The folder was selected manually during upload.",
+      smart_folder_manual_folder_removed:
+        "The folder assignment was removed manually.",
+      smart_folder_pending: "The document is waiting for smart organization.",
+      smart_folder_disabled:
+        "Smart organization is disabled for this document.",
+      smart_folder_suggestions_regenerated:
+        "Folder suggestions were regenerated.",
+      smart_folder_semantic_profile_match:
+        "The document is similar to this folder profile.",
+      smart_folder_user_history_match:
+        "The document matches your previous folder choices.",
+      smart_folder_fallback_local:
+        "A local fallback rule suggested this folder.",
+      smart_folder_specific_child_path_preferred:
+        "A more specific child folder path was preferred.",
+    },
+
     unfiled: "Unfiled",
 
     metrics: {
@@ -598,6 +673,10 @@ export const en = {
       merge: "Merge",
       saveTemplate: "Save template",
       deleteTemplate: "Delete template",
+
+      confirmAssignment: "Keep / teach AI",
+      changeFolder: "Change folder",
+      unfile: "Uncategorized",
       openDocument: "Open document",
     },
 
@@ -608,6 +687,10 @@ export const en = {
       merged: "Duplicate folders were merged.",
       templateSaved: "AI template saved.",
       templateDeleted: "AI template deleted.",
+
+      assignmentConfirmed: "Assignment confirmed. AI learned from this choice.",
+      folderChanged: "Document folder changed. AI learned from the correction.",
+      unfiled: "Document moved to uncategorized.",
       templateLoaded: "Template loaded into the form.",
     },
 
@@ -617,6 +700,8 @@ export const en = {
       reject: "Could not reject this suggestion.",
       merge: "Could not merge these folders.",
       templateSave: "Could not save this template.",
+      confirmAssignment: "Could not confirm the folder assignment.",
+      changeFolder: "Could not change the document folder.",
       templateDelete: "Could not delete this template.",
     },
   },

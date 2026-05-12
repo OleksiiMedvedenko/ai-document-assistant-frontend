@@ -406,3 +406,20 @@
     padding: 14px;
   }
 }
+
+.app-nav-link__badge {
+  margin-left: auto;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #1f1302;
+  background: linear-gradient(135deg, #fbbf24, #fb923c);
+  box-shadow: 0 8px 24px rgba(251, 146, 60, 0.28);
+}

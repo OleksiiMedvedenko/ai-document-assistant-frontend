@@ -1,3 +1,4 @@
+import { getDocumentDashboard } from "@/app/api/documents.api";
 import { LanguageSwitcher } from "@/app/components/layout/language-switcher";
 import { useAuthStore } from "@/app/store/auth.store";
 import {
@@ -13,7 +14,7 @@ import {
   UserCircle2,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import "../../styles/app-shell.css";
@@ -24,6 +25,32 @@ export function AppShell() {
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pendingDecisions, setPendingDecisions] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadDecisionCount() {
+      try {
+        const dashboard = await getDocumentDashboard();
+        if (active) {
+          setPendingDecisions(dashboard.pendingReviewDocuments ?? 0);
+        }
+      } catch {
+        if (active) {
+          setPendingDecisions(0);
+        }
+      }
+    }
+
+    void loadDecisionCount();
+    const interval = window.setInterval(() => void loadDecisionCount(), 30000);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [location.pathname]);
 
   const navItems = useMemo(() => {
     const items = [
@@ -142,6 +169,11 @@ export function AppShell() {
               >
                 <Icon size={18} />
                 <span>{item.label}</span>
+                {item.to === "/smart-workspace" && pendingDecisions > 0 ? (
+                  <em className="app-nav-link__badge" aria-label={t("nav.pendingDecisions", { count: pendingDecisions })}>
+                    {pendingDecisions > 99 ? "99+" : pendingDecisions}
+                  </em>
+                ) : null}
               </Link>
             );
           })}

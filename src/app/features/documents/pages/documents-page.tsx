@@ -7,6 +7,7 @@ import {
 } from "@/app/api/document-folders.api";
 import type { DocumentItem } from "@/app/api/documents.api";
 import {
+  confirmDocumentFolderAssignment,
   deleteDocument,
   getDocuments,
   moveDocumentToFolder,
@@ -105,6 +106,8 @@ function classificationClass(value?: string | null) {
     case "auto-assigned":
       return "document-card__classification document-card__classification--auto";
     case "auto-created-and-assigned":
+    case "auto-created-path-and-assigned":
+    case "auto-assigned-from-structure":
       return "document-card__classification document-card__classification--auto";
     case "suggested":
       return "document-card__classification document-card__classification--suggested";
@@ -221,6 +224,41 @@ function getFolderDisplayName(
   return folder.name;
 }
 
+
+function flattenFolders(folders: DocumentFolderItem[]): DocumentFolderItem[] {
+  return folders.flatMap((folder) => [folder, ...flattenFolders(folder.children)]);
+}
+
+function getFolderPathLabel(
+  folders: DocumentFolderItem[],
+  folderId: string | null | undefined,
+  language: string,
+  fallback: string,
+) {
+  if (!folderId) return fallback;
+  const all = flattenFolders(folders);
+  const byId = new Map(all.map((folder) => [folder.id, folder]));
+  const names: string[] = [];
+  let current = byId.get(folderId);
+  let guard = 0;
+
+  while (current && guard++ < 10) {
+    names.unshift(getFolderDisplayName(current, language));
+    current = current.parentFolderId ? byId.get(current.parentFolderId) : undefined;
+  }
+
+  return names.length > 0 ? names.join(" / ") : fallback;
+}
+
+function isConfirmableSmartAssignment(doc: DocumentItem) {
+  if (!doc.folderId) return false;
+  const status = String(doc.folderClassificationStatus ?? "").toLowerCase();
+  return status === "auto-assigned" ||
+    status === "auto-created-and-assigned" ||
+    status === "auto-created-path-and-assigned" ||
+    status === "auto-assigned-from-structure";
+}
+
 function getClassificationLabel(
   t: (key: string) => string,
   value?: string | null,
@@ -233,7 +271,10 @@ function getClassificationLabel(
     case "auto-assigned":
       return t("documents.folderClassification.autoAssigned");
     case "auto-created-and-assigned":
+    case "auto-created-path-and-assigned":
       return t("documents.folderClassification.autoCreated");
+    case "auto-assigned-from-structure":
+      return t("documents.folderClassification.fromStructure");
     case "suggested":
       return t("documents.folderClassification.suggested");
     case "uncategorized":
@@ -441,6 +482,7 @@ export function DocumentsPage() {
   const [search, setSearch] = useState("");
   const [selectedTarget, setSelectedTarget] = useState<FolderTarget>("all");
   const [dragDocumentId, setDragDocumentId] = useState<string | null>(null);
+  const [confirmingDocumentId, setConfirmingDocumentId] = useState<string | null>(null);
   const [smartOrganize, setSmartOrganize] = useState(() =>
     getStoredBoolean("documents.smartOrganize", true),
   );
@@ -654,10 +696,6 @@ export function DocumentsPage() {
     }
   }
 
-  async function handleUpload(file: File) {
-    await handleUploadMany([file]);
-  }
-
   async function handleDeleteDocument() {
     if (!deleteDocumentId) return;
 
@@ -709,6 +747,21 @@ export function DocumentsPage() {
       await loadDocumentsAndFolders(false);
     } catch (error) {
       setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
+    }
+  }
+
+
+  async function handleConfirmDocumentAssignment(documentId: string) {
+    setConfirmingDocumentId(documentId);
+    setActionError("");
+
+    try {
+      await confirmDocumentFolderAssignment(documentId);
+      await loadDocumentsAndFolders(false);
+    } catch (error) {
+      setActionError(getApiErrorMessage(error, t("common.unexpectedError")));
+    } finally {
+      setConfirmingDocumentId(null);
     }
   }
 
@@ -1162,7 +1215,7 @@ export function DocumentsPage() {
                 const processing = isDocumentProcessing(doc.status);
                 const ready = isDocumentReady(doc.status);
                 const failed = isDocumentFailed(doc.status);
-                const folderLabel = doc.folderId
+                const folderFallback = doc.folderId
                   ? getFolderDisplayName(
                       folderMap.get(doc.folderId) ?? {
                         name: doc.folderName ?? "",
@@ -1173,6 +1226,12 @@ export function DocumentsPage() {
                       locale,
                     )
                   : t("documents.tree.uncategorized");
+                const folderLabel = getFolderPathLabel(
+                  folders,
+                  doc.folderId,
+                  locale,
+                  folderFallback,
+                );
 
                 return (
                   <article
@@ -1302,6 +1361,22 @@ export function DocumentsPage() {
                         <ArrowRight size={16} />
                         <span>{t("documents.openDetails")}</span>
                       </Link>
+
+                      {isConfirmableSmartAssignment(doc) ? (
+                        <button
+                          type="button"
+                          className="document-card__action document-card__action--success"
+                          disabled={confirmingDocumentId === doc.id}
+                          onClick={() => void handleConfirmDocumentAssignment(doc.id)}
+                        >
+                          {confirmingDocumentId === doc.id ? (
+                            <Loader2 size={16} className="spin" />
+                          ) : (
+                            <BadgeCheck size={16} />
+                          )}
+                          <span>{t("documents.confirmAssignment", { defaultValue: t("smartWorkspace.actions.confirmAssignment") })}</span>
+                        </button>
+                      ) : null}
 
                       <Link
                         to={`/documents/${doc.id}/chat`}

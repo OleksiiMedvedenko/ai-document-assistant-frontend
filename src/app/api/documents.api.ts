@@ -20,6 +20,8 @@ export type DocumentItem = {
   folderNameUa?: string | null;
   folderClassificationStatus?: string | null;
   folderClassificationConfidence?: number | null;
+  folderClassificationReason?: string | null;
+  folderClassificationReasonCode?: string | null;
   wasFolderAutoAssigned?: boolean;
   isNew?: boolean;
   processingProfile?: number | string;
@@ -147,6 +149,15 @@ export async function moveDocumentToFolder(
   return data as DocumentItem;
 }
 
+
+export async function confirmDocumentFolderAssignment(id: string) {
+  const { data } = await apiClient.post<DocumentItem>(
+    `/api/documents/${id}/folder/confirm`,
+  );
+
+  return data;
+}
+
 export async function summarizeDocument(id: string, language?: string) {
   const { data } = await apiClient.post(`/api/documents/${id}/summarize`, {
     language,
@@ -233,6 +244,7 @@ export type DocumentFolderSuggestion = {
   finalScore?: number;
   rank: number;
   reason: string;
+  reasonCode?: string | null;
   status: string;
   createdAtUtc: string;
   acceptedAtUtc?: string | null;

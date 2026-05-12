@@ -13,6 +13,7 @@ export const ua = {
     account: "Акаунт",
     adminUsers: "Користувачі",
     documentStructure: "Структура документів",
+    pendingDecisions: "{{count}} рішень потребують перевірки",
     smartWorkspace: "Розумний простір",
   },
   common: {
@@ -96,6 +97,7 @@ export const ua = {
       "Переглядайте папки та документи у зручнішому режимі структури.",
   },
   documents: {
+    confirmAssignment: "Залишити / навчити AI",
     batchUploadTitle: "Перетягніть файли або натисніть, щоб завантажити",
     batchUploadSubtitle: "Завантажуйте один файл або цілий пакет одразу",
     uploadError: "Не вдалося завантажити файли. Спробуйте ще раз.",
@@ -180,6 +182,7 @@ export const ua = {
       autoCreated: "Папку створив AI",
       suggested: "Пропозиція AI",
       uncategorized: "Без категорії",
+      fromStructure: "Призначено зі структури папок",
     },
   },
   details: {
@@ -511,6 +514,54 @@ export const ua = {
     subtitle:
       "Переглядай рішення AI щодо папок, дивись до якого документа вони належать, об’єднуй дублікати папок і керуй багаторазовими шаблонами AI.",
     suggestedFolder: "Запропонована папка",
+
+    decision: {
+      title: "Рішення щодо папок",
+      description:
+        "Перевіряй рішення AI лише тоді, коли документ потребує підтвердження або виправлення. Для впевнених призначень підтверди вибір, щоб навчити асистента.",
+      currentAssignment: "Поточне призначення AI",
+      needsReview: "Потрібне рішення користувача",
+    },
+
+    correction: {
+      kicker: "Виправлення папки",
+      title: "Вибери правильну папку",
+      description:
+        "Переміщення документа навчає асистента тому, як ти організовуєш файли.",
+      noFolders: "У тебе ще немає папок для вибору.",
+    },
+
+    reasonCodes: {
+      smart_folder_auto_assigned_existing: "AI вибрав наявну папку на основі структури й вмісту документа.",
+      smart_folder_auto_assigned_existing_path: "AI зіставив запропонований шлях з наявною папкою та призначив документ.",
+      smart_folder_auto_created_path: "AI створив відсутній шлях папок і призначив документ.",
+      smart_folder_auto_created_and_assigned: "AI створив папку та призначив документ.",
+      smart_folder_auto_assigned_from_structure: "Папку розпізнано зі структури завантаженого каталогу.",
+      smart_folder_upload_structure_matched_existing: "Структура завантаженого каталогу збіглася з наявною папкою.",
+      smart_folder_upload_structure_created_path: "AI створив папки на основі структури завантаженого каталогу.",
+      smart_folder_needs_review: "AI не має достатньої впевненості та просить рішення користувача.",
+      smart_folder_no_confident_match: "Не знайдено впевненого збігу папки.",
+      smart_folder_no_useful_signal: "Документ не містить достатньо корисних сигналів для призначення папки.",
+      smart_folder_proposed_existing_needs_review: "AI знайшов можливу наявну папку, але це потребує твоєї перевірки.",
+      smart_folder_proposed_path_needs_review: "AI запропонував новий шлях папок, але його потрібно перевірити перед створенням.",
+      smart_folder_existing_path_selected: "AI вибрав найкращий наявний шлях папок.",
+      smart_folder_new_path_proposed: "AI запропонував новий шлях папок.",
+      smart_folder_user_confirmed_assignment: "Користувач підтвердив призначення папки.",
+      smart_folder_user_confirmed_uncategorized: "Користувач підтвердив, що документ має залишитися без категорії.",
+      smart_folder_suggestion_accepted: "Користувач прийняв пропозицію папки.",
+      smart_folder_suggestion_rejected_uncategorized: "Пропозицію відхилено, документ переміщено до без категорії.",
+      smart_folder_manual_folder_selected: "Папку вибрано вручну.",
+      smart_folder_manual_upload_folder_selected: "Папку вибрано вручну під час завантаження документа.",
+      smart_folder_manual_folder_removed: "Призначення папки було видалено вручну.",
+      smart_folder_pending: "Документ очікує на розумне впорядкування.",
+      smart_folder_disabled: "Розумне впорядкування вимкнено для цього документа.",
+      smart_folder_suggestions_regenerated: "Пропозиції папок було згенеровано повторно.",
+      smart_folder_semantic_profile_match: "Документ схожий на профіль цієї папки.",
+      smart_folder_user_history_match: "Документ відповідає твоїм попереднім виборам папок.",
+      smart_folder_fallback_local: "Локальне резервне правило запропонувало цю папку.",
+      smart_folder_specific_child_path_preferred: "Було обрано конкретніший шлях підпапки.",
+    },
+
     unfiled: "Без папки",
 
     metrics: {
@@ -601,6 +652,10 @@ export const ua = {
       merge: "Об’єднати",
       saveTemplate: "Зберегти шаблон",
       deleteTemplate: "Видалити шаблон",
+
+      confirmAssignment: "Залишити / навчити AI",
+      changeFolder: "Змінити папку",
+      unfile: "Без категорії",
       openDocument: "Відкрити документ",
     },
 
@@ -611,6 +666,10 @@ export const ua = {
       merged: "Дублікати папок об’єднано.",
       templateSaved: "Шаблон AI збережено.",
       templateDeleted: "Шаблон AI видалено.",
+
+      assignmentConfirmed: "Призначення підтверджено. AI навчився з цього вибору.",
+      folderChanged: "Папку документа змінено. AI навчився з виправлення.",
+      unfiled: "Документ переміщено до без категорії.",
       templateLoaded: "Шаблон завантажено у форму.",
     },
 
@@ -620,6 +679,8 @@ export const ua = {
       reject: "Не вдалося відхилити цю пропозицію.",
       merge: "Не вдалося об’єднати ці папки.",
       templateSave: "Не вдалося зберегти цей шаблон.",
+      confirmAssignment: "Не вдалося підтвердити призначення папки.",
+      changeFolder: "Не вдалося змінити папку документа.",
       templateDelete: "Не вдалося видалити цей шаблон.",
     },
   },

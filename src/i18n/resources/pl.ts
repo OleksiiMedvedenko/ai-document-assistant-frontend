@@ -13,6 +13,7 @@ export const pl = {
     account: "Konto",
     adminUsers: "Użytkownicy",
     documentStructure: "Struktura dokumentów",
+    pendingDecisions: "{{count}} decyzji do sprawdzenia",
     smartWorkspace: "Inteligentny workspace",
   },
   common: {
@@ -96,6 +97,7 @@ export const pl = {
       "Przeglądaj hierarchię folderów i dokumentów w wygodniejszym układzie.",
   },
   documents: {
+    confirmAssignment: "Zostaw / naucz AI",
     batchUploadTitle: "Upuść pliki albo kliknij, aby przesłać",
     batchUploadSubtitle: "Prześlij jeden plik albo całą paczkę naraz",
     uploadError: "Nie udało się przesłać plików. Spróbuj ponownie.",
@@ -181,6 +183,7 @@ export const pl = {
       autoCreated: "Folder utworzony przez AI",
       suggested: "Sugestia AI",
       uncategorized: "Bez kategorii",
+      fromStructure: "Przypisano ze struktury folderów",
     },
   },
   details: {
@@ -512,6 +515,54 @@ export const pl = {
     subtitle:
       "Przeglądaj decyzje AI dotyczące folderów, sprawdzaj którego dokumentu dotyczą, scalaj duplikaty folderów i zarządzaj wielokrotnego użytku szablonami AI.",
     suggestedFolder: "Sugerowany folder",
+
+    decision: {
+      title: "Decyzje folderów",
+      description:
+        "Sprawdź decyzje AI tylko tam, gdzie dokument wymaga potwierdzenia albo korekty. Dla pewnych przypisań możesz szybko potwierdzić wybór i uczyć asystenta.",
+      currentAssignment: "Aktualne przypisanie AI",
+      needsReview: "Wymaga decyzji użytkownika",
+    },
+
+    correction: {
+      kicker: "Korekta folderu",
+      title: "Wybierz właściwy folder",
+      description:
+        "Przeniesienie dokumentu uczy asystenta Twojego sposobu porządkowania plików.",
+      noFolders: "Nie masz jeszcze folderów do wyboru.",
+    },
+
+    reasonCodes: {
+      smart_folder_auto_assigned_existing: "AI wybrało istniejący folder na podstawie struktury i treści dokumentu.",
+      smart_folder_auto_assigned_existing_path: "AI dopasowało proponowaną ścieżkę do istniejącego folderu i przypisało dokument.",
+      smart_folder_auto_created_path: "AI utworzyło brakującą ścieżkę folderów i przypisało dokument.",
+      smart_folder_auto_created_and_assigned: "AI utworzyło folder i przypisało dokument.",
+      smart_folder_auto_assigned_from_structure: "Folder został rozpoznany ze struktury przesłanego katalogu.",
+      smart_folder_upload_structure_matched_existing: "Struktura przesłanego katalogu pasowała do istniejącego folderu.",
+      smart_folder_upload_structure_created_path: "AI utworzyło foldery na podstawie struktury przesłanego katalogu.",
+      smart_folder_needs_review: "AI nie ma wystarczającej pewności i prosi o decyzję użytkownika.",
+      smart_folder_no_confident_match: "Nie znaleziono pewnego dopasowania folderu.",
+      smart_folder_no_useful_signal: "Dokument nie zawiera wystarczających sygnałów do przypisania folderu.",
+      smart_folder_proposed_existing_needs_review: "AI znalazło możliwy istniejący folder, ale wymaga to Twojej decyzji.",
+      smart_folder_proposed_path_needs_review: "AI zaproponowało nową ścieżkę folderów, ale wymaga ona sprawdzenia przed utworzeniem.",
+      smart_folder_existing_path_selected: "AI wybrało najlepszą istniejącą ścieżkę folderów.",
+      smart_folder_new_path_proposed: "AI zaproponowało nową ścieżkę folderów.",
+      smart_folder_user_confirmed_assignment: "Użytkownik potwierdził przypisanie folderu.",
+      smart_folder_user_confirmed_uncategorized: "Użytkownik potwierdził, że dokument ma pozostać bez kategorii.",
+      smart_folder_suggestion_accepted: "Użytkownik zaakceptował sugestię folderu.",
+      smart_folder_suggestion_rejected_uncategorized: "Sugestia została odrzucona, a dokument przeniesiono do bez kategorii.",
+      smart_folder_manual_folder_selected: "Folder został wybrany ręcznie.",
+      smart_folder_manual_upload_folder_selected: "Folder został wybrany ręcznie podczas przesyłania dokumentu.",
+      smart_folder_manual_folder_removed: "Przypisanie folderu zostało ręcznie usunięte.",
+      smart_folder_pending: "Dokument czeka na inteligentne porządkowanie.",
+      smart_folder_disabled: "Inteligentne porządkowanie jest wyłączone dla tego dokumentu.",
+      smart_folder_suggestions_regenerated: "Sugestie folderów zostały wygenerowane ponownie.",
+      smart_folder_semantic_profile_match: "Dokument jest podobny do profilu tego folderu.",
+      smart_folder_user_history_match: "Dokument pasuje do Twoich wcześniejszych wyborów folderów.",
+      smart_folder_fallback_local: "Lokalna reguła awaryjna zasugerowała ten folder.",
+      smart_folder_specific_child_path_preferred: "Wybrano bardziej szczegółową ścieżkę podfolderu.",
+    },
+
     unfiled: "Bez przypisanego folderu",
 
     metrics: {
@@ -602,6 +653,10 @@ export const pl = {
       merge: "Scal",
       saveTemplate: "Zapisz szablon",
       deleteTemplate: "Usuń szablon",
+
+      confirmAssignment: "Zostaw / naucz AI",
+      changeFolder: "Zmień folder",
+      unfile: "Bez kategorii",
       openDocument: "Otwórz dokument",
     },
 
@@ -612,6 +667,10 @@ export const pl = {
       merged: "Duplikaty folderów zostały scalone.",
       templateSaved: "Szablon AI został zapisany.",
       templateDeleted: "Szablon AI został usunięty.",
+
+      assignmentConfirmed: "Przypisanie potwierdzone. AI nauczyło się tego wyboru.",
+      folderChanged: "Folder dokumentu został zmieniony. AI nauczyło się korekty.",
+      unfiled: "Dokument przeniesiono do bez kategorii.",
       templateLoaded: "Szablon został załadowany do formularza.",
     },
 
@@ -621,6 +680,8 @@ export const pl = {
       reject: "Nie udało się odrzucić tej sugestii.",
       merge: "Nie udało się scalić tych folderów.",
       templateSave: "Nie udało się zapisać tego szablonu.",
+      confirmAssignment: "Nie udało się potwierdzić przypisania folderu.",
+      changeFolder: "Nie udało się zmienić folderu dokumentu.",
       templateDelete: "Nie udało się usunąć tego szablonu.",
     },
   },

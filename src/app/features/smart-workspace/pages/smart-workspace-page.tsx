@@ -5,15 +5,19 @@ import {
   type AiActionTemplate,
 } from "@/app/api/ai-action-templates.api";
 import {
+  getDocumentFoldersTree,
   getDuplicateFolderSuggestions,
   mergeDocumentFolders,
+  type DocumentFolderItem,
   type FolderDuplicateSuggestion,
 } from "@/app/api/document-folders.api";
 import {
   acceptDocumentFolderSuggestion,
+  confirmDocumentFolderAssignment,
   getDocumentDashboard,
   getDocumentInbox,
   getDocuments,
+  moveDocumentToFolder,
   rejectDocumentFolderSuggestion,
   type DocumentDashboard,
   type DocumentFolderSuggestion,
@@ -30,10 +34,13 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
+  ChevronRight,
   Copy,
   FileText,
   Files,
+  Folder,
   FolderGit2,
+  FolderOpen,
   Inbox,
   Loader2,
   RefreshCcw,
@@ -61,6 +68,11 @@ type SuggestionGroup = {
   document?: DocumentItem;
   suggestions: DocumentFolderSuggestion[];
 };
+
+type FolderCorrectionState = {
+  document: DocumentItem;
+  expandedIds: Set<string>;
+} | null;
 
 function getApiErrorMessage(error: unknown, fallback: string) {
   if (!error || typeof error !== "object") return fallback;
@@ -102,6 +114,61 @@ function formatDate(value?: string | null, language = "en") {
   }
 }
 
+
+function getLocalizedFolderName(
+  folder: Pick<DocumentFolderItem, "name" | "namePl" | "nameEn" | "nameUa">,
+  language: string,
+) {
+  const normalized = language.toLowerCase();
+  if (normalized.startsWith("pl")) return folder.namePl || folder.name;
+  if (normalized.startsWith("ua") || normalized.startsWith("uk")) return folder.nameUa || folder.name;
+  if (normalized.startsWith("en")) return folder.nameEn || folder.name;
+  return folder.name;
+}
+
+function flattenFolders(folders: DocumentFolderItem[]): DocumentFolderItem[] {
+  return folders.flatMap((folder) => [folder, ...flattenFolders(folder.children)]);
+}
+
+function buildFolderPath(
+  folders: DocumentFolderItem[],
+  folderId?: string | null,
+  language = "en",
+) {
+  if (!folderId) return "";
+  const all = flattenFolders(folders);
+  const byId = new Map(all.map((folder) => [folder.id, folder]));
+  const names: string[] = [];
+  let current = byId.get(folderId);
+  let guard = 0;
+
+  while (current && guard++ < 10) {
+    names.unshift(getLocalizedFolderName(current, language));
+    current = current.parentFolderId ? byId.get(current.parentFolderId) : undefined;
+  }
+
+  return names.join(" / ");
+}
+
+function isDecisionRequired(documentItem?: DocumentItem) {
+  const status = String(documentItem?.folderClassificationStatus ?? "").toLowerCase();
+  return status === "suggested" || status === "needs-review" || status === "pending-review";
+}
+
+function isConfirmableAssignment(documentItem?: DocumentItem) {
+  if (!documentItem?.folderId) return false;
+  const status = String(documentItem.folderClassificationStatus ?? "").toLowerCase();
+  return status === "auto-assigned" ||
+    status === "auto-created-and-assigned" ||
+    status === "auto-created-path-and-assigned" ||
+    status === "auto-assigned-from-structure";
+}
+
+function localizeReasonCode(code: string | null | undefined, t: Translate) {
+  if (!code) return "";
+  return t(`smartWorkspace.reasonCodes.${code.replaceAll(".", "_")}`, { defaultValue: "" });
+}
+
 function getInitialTemplateForm(t: Translate): TemplateForm {
   return {
     name: t("smartWorkspace.templates.defaultName"),
@@ -136,7 +203,10 @@ function shortId(value: string) {
   return value.slice(0, 8);
 }
 
-function localizeSuggestionReason(reason: string | undefined, t: Translate) {
+function localizeSuggestionReason(reason: string | undefined, t: Translate, reasonCode?: string | null) {
+  const translatedCode = localizeReasonCode(reasonCode, t);
+  if (translatedCode) return translatedCode;
+
   if (!reason?.trim()) return t("smartWorkspace.suggestions.noReason");
 
   const normalized = reason.trim();
@@ -223,7 +293,7 @@ function SuggestionRow({
           <strong>{getSuggestionTargetName(suggestion, t)}</strong>
         </div>
 
-        <p>{localizeSuggestionReason(suggestion.reason, t)}</p>
+        <p>{localizeSuggestionReason(suggestion.reason, t, suggestion.reasonCode)}</p>
 
         <div className="smart-score-grid">
           <span>
@@ -275,15 +345,132 @@ function SuggestionRow({
   );
 }
 
+
+function FolderPickerModal({
+  open,
+  documentItem,
+  folders,
+  expandedIds,
+  busy,
+  language,
+  onToggle,
+  onPick,
+  onUnfile,
+  onClose,
+  t,
+}: {
+  open: boolean;
+  documentItem?: DocumentItem;
+  folders: DocumentFolderItem[];
+  expandedIds: Set<string>;
+  busy: boolean;
+  language: string;
+  onToggle: (folderId: string) => void;
+  onPick: (folderId: string) => void;
+  onUnfile: () => void;
+  onClose: () => void;
+  t: Translate;
+}) {
+  if (!open || !documentItem) return null;
+
+  const renderNode = (folder: DocumentFolderItem, depth = 0): ReactNode => {
+    const hasChildren = folder.children.length > 0;
+    const isExpanded = expandedIds.has(folder.id);
+    const name = getLocalizedFolderName(folder, language);
+
+    return (
+      <li key={folder.id} className="smart-folder-picker__node">
+        <div className="smart-folder-picker__row" style={{ paddingLeft: `${depth * 16 + 10}px` }}>
+          <button
+            type="button"
+            className="smart-folder-picker__toggle"
+            onClick={() => hasChildren && onToggle(folder.id)}
+            disabled={!hasChildren}
+            aria-label={name}
+          >
+            {hasChildren ? (isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />) : <span />}
+          </button>
+
+          <div className="smart-folder-picker__icon">
+            {hasChildren && isExpanded ? <FolderOpen size={15} /> : <Folder size={15} />}
+          </div>
+
+          <button
+            type="button"
+            className="smart-folder-picker__pick"
+            onClick={() => onPick(folder.id)}
+            disabled={busy}
+          >
+            <span>{name}</span>
+            <small>{folder.documentCount}</small>
+          </button>
+        </div>
+
+        {hasChildren && isExpanded ? (
+          <ul>{folder.children.map((child) => renderNode(child, depth + 1))}</ul>
+        ) : null}
+      </li>
+    );
+  };
+
+  return (
+    <div className="smart-folder-picker" role="dialog" aria-modal="true">
+      <button
+        type="button"
+        className="smart-folder-picker__backdrop"
+        onClick={onClose}
+        aria-label={t("common.close")}
+      />
+
+      <section className="smart-folder-picker__panel surface-card">
+        <div className="smart-folder-picker__header">
+          <div>
+            <p className="section-kicker">{t("smartWorkspace.correction.kicker")}</p>
+            <h2>{t("smartWorkspace.correction.title")}</h2>
+            <span>{getDocumentDisplayName(documentItem)}</span>
+          </div>
+          <button type="button" className="smart-button smart-button--ghost" onClick={onClose}>
+            <XCircle size={15} />
+            {t("common.close")}
+          </button>
+        </div>
+
+        <p className="smart-panel-description">{t("smartWorkspace.correction.description")}</p>
+
+        <div className="smart-folder-picker__actions">
+          <button type="button" className="smart-button smart-button--danger" onClick={onUnfile} disabled={busy}>
+            <XCircle size={15} />
+            {t("smartWorkspace.actions.unfile")}
+          </button>
+        </div>
+
+        <ul className="smart-folder-picker__tree">
+          {folders.length === 0 ? <li className="smart-empty">{t("smartWorkspace.correction.noFolders")}</li> : folders.map((folder) => renderNode(folder))}
+        </ul>
+      </section>
+
+    </div>
+  );
+}
+
+
 function SuggestionGroupCard({
   group,
+  folderPath,
   busyKey,
+  onConfirm,
+  onCorrect,
+  onUnfile,
   onAccept,
   onReject,
   t,
 }: {
   group: SuggestionGroup;
+  folderPath: string;
   busyKey: string | null;
+  onConfirm: (documentItem: DocumentItem) => void;
+  onCorrect: (documentItem: DocumentItem) => void;
+  onUnfile: (documentItem: DocumentItem) => void;
   onAccept: (suggestion: DocumentFolderSuggestion) => void;
   onReject: (suggestion: DocumentFolderSuggestion) => void;
   t: Translate;
@@ -298,7 +485,10 @@ function SuggestionGroupCard({
     ? getDocumentStatusLabel(group.document.status)
     : t("smartWorkspace.suggestions.unknownStatus");
 
-  const folder = group.document?.folderName || t("smartWorkspace.unfiled");
+  const folder = folderPath || group.document?.folderName || t("smartWorkspace.unfiled");
+  const decisionRequired = isDecisionRequired(group.document);
+  const confirmable = isConfirmableAssignment(group.document);
+  const reasonText = localizeReasonCode(group.document?.folderClassificationReasonCode, t) || group.document?.folderClassificationReason || "";
 
   return (
     <article className="smart-document-decision-card">
@@ -343,7 +533,34 @@ function SuggestionGroupCard({
         </div>
       </div>
 
-      <div className="smart-suggestion-rows">
+      {group.document ? (
+        <div className={`smart-decision-summary ${decisionRequired ? "smart-decision-summary--review" : ""}`}>
+          <div>
+            <span>{decisionRequired ? t("smartWorkspace.decision.needsReview") : t("smartWorkspace.decision.currentAssignment")}</span>
+            <strong>{folder}</strong>
+            {reasonText ? <p>{reasonText}</p> : null}
+          </div>
+          <div className="smart-decision-summary__actions">
+            {confirmable ? (
+              <button type="button" className="smart-button smart-button--success" disabled={busyKey === `confirm:${group.document.id}`} onClick={() => onConfirm(group.document!)}>
+                {busyKey === `confirm:${group.document.id}` ? <Loader2 size={15} className="spin" /> : <CheckCircle2 size={15} />}
+                {t("smartWorkspace.actions.confirmAssignment")}
+              </button>
+            ) : null}
+            <button type="button" className="smart-button smart-button--warning" disabled={busyKey === `correct:${group.document.id}`} onClick={() => onCorrect(group.document!)}>
+              <FolderGit2 size={15} />
+              {t("smartWorkspace.actions.changeFolder")}
+            </button>
+            <button type="button" className="smart-button smart-button--ghost" disabled={busyKey === `unfile:${group.document.id}`} onClick={() => onUnfile(group.document!)}>
+              <XCircle size={15} />
+              {t("smartWorkspace.actions.unfile")}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {group.suggestions.length > 0 ? (
+        <div className="smart-suggestion-rows smart-suggestion-rows--secondary">
         {group.suggestions.map((suggestion) => (
           <SuggestionRow
             key={suggestion.id}
@@ -354,7 +571,8 @@ function SuggestionGroupCard({
             t={t}
           />
         ))}
-      </div>
+        </div>
+      ) : null}
     </article>
   );
 }
@@ -415,6 +633,8 @@ export function SmartWorkspacePage() {
   const [dashboard, setDashboard] = useState<DocumentDashboard | null>(null);
   const [inbox, setInbox] = useState<DocumentItem[]>([]);
   const [allDocuments, setAllDocuments] = useState<DocumentItem[]>([]);
+  const [folders, setFolders] = useState<DocumentFolderItem[]>([]);
+  const [folderCorrection, setFolderCorrection] = useState<FolderCorrectionState>(null);
   const [duplicates, setDuplicates] = useState<FolderDuplicateSuggestion[]>([]);
   const [templates, setTemplates] = useState<AiActionTemplate[]>([]);
   const [templateForm, setTemplateForm] = useState<TemplateForm>(() =>
@@ -438,12 +658,14 @@ export function SmartWorkspacePage() {
         dashboardResult,
         inboxResult,
         documentsResult,
+        folderResult,
         duplicateResult,
         templateResult,
       ] = await Promise.all([
         getDocumentDashboard(),
         getDocumentInbox().catch(() => []),
         getDocuments().catch(() => []),
+        getDocumentFoldersTree().catch(() => []),
         getDuplicateFolderSuggestions().catch(() => []),
         getAiActionTemplates().catch(() => []),
       ]);
@@ -451,6 +673,7 @@ export function SmartWorkspacePage() {
       setDashboard(dashboardResult);
       setInbox(Array.isArray(inboxResult) ? inboxResult : []);
       setAllDocuments(Array.isArray(documentsResult) ? documentsResult : []);
+      setFolders(Array.isArray(folderResult) ? folderResult : []);
       setDuplicates(Array.isArray(duplicateResult) ? duplicateResult : []);
       setTemplates(Array.isArray(templateResult) ? templateResult : []);
     } catch (loadError) {
@@ -511,6 +734,16 @@ export function SmartWorkspacePage() {
       const current = grouped.get(suggestion.documentId) ?? [];
       current.push(suggestion);
       grouped.set(suggestion.documentId, current);
+    }
+
+    const reviewDocs = [...documentMap.values()].filter((doc) =>
+      isDecisionRequired(doc) || isConfirmableAssignment(doc),
+    );
+
+    for (const doc of reviewDocs) {
+      if (!grouped.has(doc.id)) {
+        grouped.set(doc.id, []);
+      }
     }
 
     return Array.from(grouped.entries()).map(([documentId, suggestions]) => ({
@@ -581,6 +814,74 @@ export function SmartWorkspacePage() {
     } finally {
       setBusyKey(null);
     }
+  }
+
+
+  async function handleConfirmAssignment(documentItem: DocumentItem) {
+    setBusyKey(`confirm:${documentItem.id}`);
+    setError("");
+    setNotice("");
+
+    try {
+      await confirmDocumentFolderAssignment(documentItem.id);
+      setNotice(t("smartWorkspace.notices.assignmentConfirmed"));
+      await loadWorkspace(false);
+    } catch (confirmError) {
+      setError(getApiErrorMessage(confirmError, t("smartWorkspace.errors.confirmAssignment")));
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function handleUnfileDocument(documentItem: DocumentItem) {
+    setBusyKey(`unfile:${documentItem.id}`);
+    setError("");
+    setNotice("");
+
+    try {
+      await moveDocumentToFolder(documentItem.id, null);
+      setNotice(t("smartWorkspace.notices.unfiled"));
+      setFolderCorrection(null);
+      await loadWorkspace(false);
+    } catch (moveError) {
+      setError(getApiErrorMessage(moveError, t("smartWorkspace.errors.changeFolder")));
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function handlePickCorrectionFolder(folderId: string) {
+    if (!folderCorrection?.document) return;
+    const documentItem = folderCorrection.document;
+    setBusyKey(`correct:${documentItem.id}`);
+    setError("");
+    setNotice("");
+
+    try {
+      await moveDocumentToFolder(documentItem.id, folderId);
+      setNotice(t("smartWorkspace.notices.folderChanged"));
+      setFolderCorrection(null);
+      await loadWorkspace(false);
+    } catch (moveError) {
+      setError(getApiErrorMessage(moveError, t("smartWorkspace.errors.changeFolder")));
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  function openCorrectionPicker(documentItem: DocumentItem) {
+    const expandedIds = new Set(flattenFolders(folders).map((folder) => folder.id));
+    setFolderCorrection({ document: documentItem, expandedIds });
+  }
+
+  function toggleCorrectionFolder(folderId: string) {
+    setFolderCorrection((current) => {
+      if (!current) return current;
+      const next = new Set(current.expandedIds);
+      if (next.has(folderId)) next.delete(folderId);
+      else next.add(folderId);
+      return { ...current, expandedIds: next };
+    });
   }
 
   async function handleMergeDuplicate(duplicate: FolderDuplicateSuggestion) {
@@ -695,8 +996,8 @@ export function SmartWorkspacePage() {
             </span>
             <span className="smart-hero__chip smart-hero__chip--accent">
               <WandSparkles size={14} />
-              {dashboard?.pendingSuggestions?.length ?? 0}{" "}
-              {t("smartWorkspace.suggestions.title").toLowerCase()}
+              {suggestionGroups.length}{" "}
+              {t("smartWorkspace.decision.title").toLowerCase()}
             </span>
           </div>
         </div>
@@ -764,12 +1065,12 @@ export function SmartWorkspacePage() {
         <div className="smart-main-column">
           <InfoPanel
             kicker={t("smartWorkspace.suggestions.kicker")}
-            title={t("smartWorkspace.suggestions.title")}
-            count={dashboard?.pendingSuggestions?.length ?? 0}
+            title={t("smartWorkspace.decision.title")}
+            count={suggestionGroups.length}
             accent="purple"
           >
             <p className="smart-panel-description">
-              {t("smartWorkspace.suggestions.description")}
+              {t("smartWorkspace.decision.description")}
             </p>
 
             <div className="smart-document-decision-list">
@@ -782,7 +1083,11 @@ export function SmartWorkspacePage() {
                   <SuggestionGroupCard
                     key={group.documentId}
                     group={group}
+                    folderPath={buildFolderPath(folders, group.document?.folderId, i18n.language)}
                     busyKey={busyKey}
+                    onConfirm={(doc) => void handleConfirmAssignment(doc)}
+                    onCorrect={openCorrectionPicker}
+                    onUnfile={(doc) => void handleUnfileDocument(doc)}
                     onAccept={handleAcceptSuggestion}
                     onReject={handleRejectSuggestion}
                     t={translate}
@@ -1144,6 +1449,22 @@ export function SmartWorkspacePage() {
           </section>
         </aside>
       </section>
+
+      <FolderPickerModal
+        open={folderCorrection !== null}
+        documentItem={folderCorrection?.document}
+        folders={folders}
+        expandedIds={folderCorrection?.expandedIds ?? new Set<string>()}
+        busy={busyKey?.startsWith("correct:") || busyKey?.startsWith("unfile:") || false}
+        language={i18n.language}
+        onToggle={toggleCorrectionFolder}
+        onPick={(folderId) => void handlePickCorrectionFolder(folderId)}
+        onUnfile={() => {
+          if (folderCorrection?.document) void handleUnfileDocument(folderCorrection.document);
+        }}
+        onClose={() => setFolderCorrection(null)}
+        t={translate}
+      />
     </div>
   );
 }
